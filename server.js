@@ -12,6 +12,11 @@ app.use(bodyParser.json());
 
 // Use relative path so it works both locally and on Railway
 const CAMPAIGNS_PATH = path.join(__dirname, 'campaigns');
+console.log('🔍 CAMPAIGNS_PATH:', CAMPAIGNS_PATH);
+console.log('📁 Path exists:', require('fs').existsSync(CAMPAIGNS_PATH));
+if (require('fs').existsSync(CAMPAIGNS_PATH)) {
+  console.log('📂 Contents:', require('fs').readdirSync(CAMPAIGNS_PATH));
+}
 
 // Helper: Read campaign data from JSON
 function getCampaignData(campaignPath) {
