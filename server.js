@@ -10,8 +10,8 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(bodyParser.json());
 
-const WORKSPACE_PATH = '/root/.openclaw/workspace';
-const CAMPAIGNS_PATH = path.join(WORKSPACE_PATH, 'campaigns');
+// Use relative path so it works both locally and on Railway
+const CAMPAIGNS_PATH = path.join(__dirname, 'campaigns');
 
 // Helper: Read campaign data from JSON
 function getCampaignData(campaignPath) {
