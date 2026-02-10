@@ -53,6 +53,11 @@ function getFlashBrief(campaignPath) {
   if (fs.existsSync(briefPath)) {
     return fs.readFileSync(briefPath, 'utf8');
   }
+  // Fallback to FLASH_BRIEF.md if flash-brief.md doesn't exist
+  const altBriefPath = path.join(campaignPath, 'docs', 'FLASH_BRIEF.md');
+  if (fs.existsSync(altBriefPath)) {
+    return fs.readFileSync(altBriefPath, 'utf8');
+  }
   return null;
 }
 
@@ -61,6 +66,11 @@ function getStoryboard(campaignPath) {
   const storyboardPath = path.join(campaignPath, 'docs', 'storyboard.md');
   if (fs.existsSync(storyboardPath)) {
     return fs.readFileSync(storyboardPath, 'utf8');
+  }
+  // Fallback to STORYBOARD_WITH_BRANDING.md if storyboard.md doesn't exist
+  const altStoryboardPath = path.join(campaignPath, 'docs', 'STORYBOARD_WITH_BRANDING.md');
+  if (fs.existsSync(altStoryboardPath)) {
+    return fs.readFileSync(altStoryboardPath, 'utf8');
   }
   return null;
 }
