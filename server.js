@@ -11,11 +11,22 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Use relative path so it works both locally and on Railway
-const CAMPAIGNS_PATH = path.join(__dirname, 'campaigns');
+let CAMPAIGNS_PATH = path.join(__dirname, 'campaigns');
+
+// Debug logging
+console.log('🔍 __dirname:', __dirname);
 console.log('🔍 CAMPAIGNS_PATH:', CAMPAIGNS_PATH);
-console.log('📁 Path exists:', require('fs').existsSync(CAMPAIGNS_PATH));
-if (require('fs').existsSync(CAMPAIGNS_PATH)) {
-  console.log('📂 Contents:', require('fs').readdirSync(CAMPAIGNS_PATH));
+console.log('📁 Path exists:', fs.existsSync(CAMPAIGNS_PATH));
+
+// If doesn't exist, try /app (Railway's default)
+if (!fs.existsSync(CAMPAIGNS_PATH) && fs.existsSync('/app/campaigns')) {
+  CAMPAIGNS_PATH = '/app/campaigns';
+  console.log('✓ Using /app/campaigns instead');
+}
+
+if (fs.existsSync(CAMPAIGNS_PATH)) {
+  const contents = fs.readdirSync(CAMPAIGNS_PATH);
+  console.log('📂 Contents:', contents);
 }
 
 // Helper: Read campaign data from JSON
