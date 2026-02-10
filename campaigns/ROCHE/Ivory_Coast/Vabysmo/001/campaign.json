@@ -1,0 +1,23 @@
+{
+  "created": "2026-02-09T22:01:27.816Z",
+  "company": "ROCHE",
+  "country": "Ivory Coast",
+  "product": "Vabysmo",
+  "campaignNumber": 1,
+  "contact": "Arnaud ADJA-GNAMIEN",
+  "email": "arnaud.adja-gnamien@roche.com",
+  "timeline": "Q1 2026",
+  "objectives": [
+    "Education and understanding",
+    "Lead generation",
+    "Awareness and reach"
+  ],
+  "branding": "Branded",
+  "deliveryChannels": [
+    "Email campaign",
+    "In-person events",
+    "Social",
+    "Website"
+  ],
+  "status": "Ready for mockup generation"
+}
