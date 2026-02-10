@@ -265,6 +265,154 @@ app.post('/api/campaigns/:id/storyboard', (req, res) => {
   res.status(404).json({ error: 'Campaign not found' });
 });
 
+// API: Request Flash Brief revision with prompt
+app.post('/api/campaigns/:id/flash-brief-revision', (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'Prompt required' });
+  
+  const campaignPaths = findAllCampaigns(CAMPAIGNS_PATH);
+  
+  for (const campaignPath of campaignPaths) {
+    const data = getCampaignData(campaignPath);
+    if (!data) continue;
+    
+    const campaignId = `${data.company}-${data.country}-${data.product}-${String(data.campaignNumber).padStart(3, '0')}`;
+    if (campaignId === req.params.id) {
+      const docsPath = path.join(campaignPath, 'docs');
+      const revisionsPath = path.join(campaignPath, 'revisions.json');
+      
+      // Read current revisions
+      let revisions = { flashBrief: [], storyboard: [] };
+      if (fs.existsSync(revisionsPath)) {
+        revisions = JSON.parse(fs.readFileSync(revisionsPath, 'utf8'));
+      }
+      
+      // Add new revision request
+      const versionNum = revisions.flashBrief.length + 1;
+      revisions.flashBrief.push({
+        version: versionNum,
+        prompt: prompt,
+        requestedAt: new Date().toISOString(),
+        requestedBy: 'User',
+        status: 'pending'
+      });
+      
+      fs.writeFileSync(revisionsPath, JSON.stringify(revisions, null, 2));
+      
+      // Add audit entry
+      const auditPath = path.join(campaignPath, 'audit.json');
+      let auditLog = [];
+      if (fs.existsSync(auditPath)) {
+        auditLog = JSON.parse(fs.readFileSync(auditPath, 'utf8'));
+      }
+      
+      auditLog.push({
+        timestamp: new Date().toISOString(),
+        action: 'Flash Brief Revision Requested',
+        actor: 'User',
+        details: `Prompt: "${prompt}"`
+      });
+      
+      fs.writeFileSync(auditPath, JSON.stringify(auditLog, null, 2));
+      
+      return res.json({ 
+        success: true, 
+        message: 'Revision requested',
+        version: versionNum,
+        prompt: prompt,
+        status: 'pending'
+      });
+    }
+  }
+  
+  res.status(404).json({ error: 'Campaign not found' });
+});
+
+// API: Request Storyboard revision with prompt
+app.post('/api/campaigns/:id/storyboard-revision', (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'Prompt required' });
+  
+  const campaignPaths = findAllCampaigns(CAMPAIGNS_PATH);
+  
+  for (const campaignPath of campaignPaths) {
+    const data = getCampaignData(campaignPath);
+    if (!data) continue;
+    
+    const campaignId = `${data.company}-${data.country}-${data.product}-${String(data.campaignNumber).padStart(3, '0')}`;
+    if (campaignId === req.params.id) {
+      const docsPath = path.join(campaignPath, 'docs');
+      const revisionsPath = path.join(campaignPath, 'revisions.json');
+      
+      // Read current revisions
+      let revisions = { flashBrief: [], storyboard: [] };
+      if (fs.existsSync(revisionsPath)) {
+        revisions = JSON.parse(fs.readFileSync(revisionsPath, 'utf8'));
+      }
+      
+      // Add new revision request
+      const versionNum = revisions.storyboard.length + 1;
+      revisions.storyboard.push({
+        version: versionNum,
+        prompt: prompt,
+        requestedAt: new Date().toISOString(),
+        requestedBy: 'User',
+        status: 'pending'
+      });
+      
+      fs.writeFileSync(revisionsPath, JSON.stringify(revisions, null, 2));
+      
+      // Add audit entry
+      const auditPath = path.join(campaignPath, 'audit.json');
+      let auditLog = [];
+      if (fs.existsSync(auditPath)) {
+        auditLog = JSON.parse(fs.readFileSync(auditPath, 'utf8'));
+      }
+      
+      auditLog.push({
+        timestamp: new Date().toISOString(),
+        action: 'Storyboard Revision Requested',
+        actor: 'User',
+        details: `Prompt: "${prompt}"`
+      });
+      
+      fs.writeFileSync(auditPath, JSON.stringify(auditLog, null, 2));
+      
+      return res.json({ 
+        success: true, 
+        message: 'Revision requested',
+        version: versionNum,
+        prompt: prompt,
+        status: 'pending'
+      });
+    }
+  }
+  
+  res.status(404).json({ error: 'Campaign not found' });
+});
+
+// API: Get revision history
+app.get('/api/campaigns/:id/revisions', (req, res) => {
+  const campaignPaths = findAllCampaigns(CAMPAIGNS_PATH);
+  
+  for (const campaignPath of campaignPaths) {
+    const data = getCampaignData(campaignPath);
+    if (!data) continue;
+    
+    const campaignId = `${data.company}-${data.country}-${data.product}-${String(data.campaignNumber).padStart(3, '0')}`;
+    if (campaignId === req.params.id) {
+      const revisionsPath = path.join(campaignPath, 'revisions.json');
+      if (fs.existsSync(revisionsPath)) {
+        const revisions = JSON.parse(fs.readFileSync(revisionsPath, 'utf8'));
+        return res.json(revisions);
+      }
+      return res.json({ flashBrief: [], storyboard: [] });
+    }
+  }
+  
+  res.status(404).json({ error: 'Campaign not found' });
+});
+
 // API: Update workflow stage
 app.post('/api/campaigns/:id/stage/:stageId', (req, res) => {
   const { newStatus } = req.body;
