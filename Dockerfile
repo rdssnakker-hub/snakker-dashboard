@@ -8,9 +8,10 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci --only=production
 
-# Copy server and public files
+# Copy server, public files, and campaigns data
 COPY server.js .
 COPY public ./public
+COPY campaigns ./campaigns
 
 # Expose port
 EXPOSE 3001
