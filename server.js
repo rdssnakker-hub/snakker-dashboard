@@ -78,19 +78,67 @@ function getStoryboard(campaignPath) {
 // Helper: Get workflow stages
 function getWorkflowStages(campaignPath, campaignData) {
   const stagesPath = path.join(campaignPath, 'workflow.json');
+  let stages;
+  
   if (fs.existsSync(stagesPath)) {
-    return JSON.parse(fs.readFileSync(stagesPath, 'utf8'));
+    stages = JSON.parse(fs.readFileSync(stagesPath, 'utf8'));
+  } else {
+    // Default stages
+    stages = [
+      { id: 1, name: 'Intake Form', status: 'completed', owner: 'Arnaud', started: '2026-02-09', completed: '2026-02-09' },
+      { id: 2, name: 'Flash Brief', status: 'pending', owner: 'Klaus', started: null, completed: null },
+      { id: 3, name: 'Storyboard Draft', status: 'pending', owner: 'Klaus', started: null, completed: null },
+      { id: 4, name: 'Magic Patterns Gen', status: 'pending', owner: 'Klaus', started: null, completed: null },
+      { id: 5, name: 'Snakker Brief', status: 'pending', owner: 'Klaus', started: null, completed: null },
+      { id: 6, name: 'Snak Deployment', status: 'pending', owner: 'Developer', started: null, completed: null }
+    ];
   }
   
-  // Default stages
-  return [
-    { id: 1, name: 'Intake Form', status: 'completed', owner: 'Arnaud', started: '2026-02-09', completed: '2026-02-09' },
-    { id: 2, name: 'Flash Brief', status: 'in-progress', owner: 'Klaus', started: '2026-02-09', completed: null },
-    { id: 3, name: 'Storyboard Draft', status: 'pending', owner: 'Klaus', started: null, completed: null },
-    { id: 4, name: 'Magic Patterns Gen', status: 'pending', owner: 'Klaus', started: null, completed: null },
-    { id: 5, name: 'Snakker Brief', status: 'pending', owner: 'Klaus', started: null, completed: null },
-    { id: 6, name: 'Snak Deployment', status: 'pending', owner: 'Developer', started: null, completed: null }
-  ];
+  // Auto-detect completed stages based on file existence
+  const docsPath = path.join(campaignPath, 'docs');
+  
+  // Check Flash Brief
+  if (fs.existsSync(path.join(docsPath, 'flash-brief.md')) || 
+      fs.existsSync(path.join(docsPath, 'FLASH_BRIEF.md'))) {
+    const stage = stages.find(s => s.id === 2);
+    if (stage && stage.status === 'pending') {
+      stage.status = 'completed';
+      stage.completed = new Date().toISOString().split('T')[0];
+    }
+  }
+  
+  // Check Storyboard
+  if (fs.existsSync(path.join(docsPath, 'storyboard.md')) || 
+      fs.existsSync(path.join(docsPath, 'STORYBOARD_WITH_BRANDING.md'))) {
+    const stage = stages.find(s => s.id === 3);
+    if (stage && stage.status === 'pending') {
+      stage.status = 'completed';
+      stage.completed = new Date().toISOString().split('T')[0];
+    }
+  }
+  
+  // Check Magic Patterns designs
+  if (fs.existsSync(path.join(docsPath, 'design-specs.md')) || 
+      fs.existsSync(path.join(docsPath, 'designs.json')) ||
+      fs.existsSync(path.join(docsPath, 'MAGIC_PATTERNS.md'))) {
+    const stage = stages.find(s => s.id === 4);
+    if (stage && stage.status === 'pending') {
+      stage.status = 'completed';
+      stage.completed = new Date().toISOString().split('T')[0];
+    }
+  }
+  
+  // Check Snakker Brief
+  if (fs.existsSync(path.join(docsPath, 'snakker-brief.json')) || 
+      fs.existsSync(path.join(docsPath, 'SNAKKER_BRIEF.json'))) {
+    const stage = stages.find(s => s.id === 5);
+    if (stage && stage.status === 'pending') {
+      stage.status = 'completed';
+      stage.completed = new Date().toISOString().split('T')[0];
+    }
+  }
+  
+  return stages;
 }
 
 // Helper: Recursively find all campaigns
