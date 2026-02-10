@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snakker Campaign Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #0f1419;
+      color: #e1e8ed;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      margin-bottom: 40px;
+      border-bottom: 1px solid #38444d;
+      padding-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+
+    .subtitle {
+      color: #657786;
+      font-size: 0.95rem;
+    }
+
+    .campaigns-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .campaign-card {
+      background: #192734;
+      border: 1px solid #38444d;
+      border-radius: 8px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .campaign-card:hover {
+      border-color: #1da1f2;
+      box-shadow: 0 0 10px rgba(29, 161, 242, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .campaign-header {
+      margin-bottom: 15px;
+    }
+
+    .campaign-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 5px;
+    }
+
+    .campaign-meta {
+      font-size: 0.85rem;
+      color: #657786;
+      margin-bottom: 10px;
+    }
+
+    .campaign-status {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #1da1f2;
+      color: #fff;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .progress-bar {
+      background: #38444d;
+      height: 6px;
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 15px 0;
+    }
+
+    .progress-fill {
+      background: linear-gradient(90deg, #1da1f2, #17bf63);
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .stage-info {
+      font-size: 0.85rem;
+      color: #657786;
+      margin-top: 10px;
+    }
+
+    .detail-view {
+      display: none;
+    }
+
+    .detail-view.active {
+      display: block;
+    }
+
+    .back-btn {
+      background: #1da1f2;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .back-btn:hover {
+      background: #1a91da;
+    }
+
+    .detail-container {
+      background: #192734;
+      border: 1px solid #38444d;
+      border-radius: 8px;
+      padding: 30px;
+    }
+
+    .detail-header {
+      margin-bottom: 30px;
+      border-bottom: 1px solid #38444d;
+      padding-bottom: 20px;
+    }
+
+    .detail-title {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    .detail-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 15px;
+      font-size: 0.9rem;
+    }
+
+    .meta-item label {
+      color: #657786;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .meta-item value {
+      color: #fff;
+    }
+
+    .section {
+      margin-bottom: 40px;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #38444d;
+    }
+
+    .workflow-stages {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .stage-item {
+      background: #0f1419;
+      border: 1px solid #38444d;
+      border-radius: 6px;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stage-number {
+      background: #1da1f2;
+      color: #fff;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 15px;
+    }
+
+    .stage-details {
+      flex-grow: 1;
+    }
+
+    .stage-name {
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+
+    .stage-meta {
+      font-size: 0.8rem;
+      color: #657786;
+    }
+
+    .stage-status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-completed {
+      background: #17bf63;
+      color: #fff;
+    }
+
+    .status-in-progress {
+      background: #1da1f2;
+      color: #fff;
+    }
+
+    .status-pending {
+      background: #657786;
+      color: #fff;
+    }
+
+    .flash-brief, .storyboard-section {
+      background: #0f1419;
+      border: 1px solid #38444d;
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .flash-brief pre, .storyboard-section pre {
+      background: #161b22;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .edit-btn {
+      background: #1da1f2;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-top: 10px;
+    }
+
+    .edit-btn:hover {
+      background: #1a91da;
+    }
+
+    .edit-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .edit-modal.active {
+      display: flex;
+    }
+
+    .edit-modal-content {
+      background: #192734;
+      border-radius: 8px;
+      padding: 30px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .edit-modal-header {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+
+    .edit-modal textarea {
+      width: 100%;
+      height: 400px;
+      background: #0f1419;
+      border: 1px solid #38444d;
+      border-radius: 4px;
+      color: #e1e8ed;
+      padding: 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+
+    .edit-modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .modal-btn {
+      padding: 10px 20px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .modal-btn-save {
+      background: #17bf63;
+      color: #fff;
+    }
+
+    .modal-btn-cancel {
+      background: #657786;
+      color: #fff;
+    }
+
+    .audit-log {
+      background: #0f1419;
+      border: 1px solid #38444d;
+      border-radius: 6px;
+      padding: 15px;
+    }
+
+    .audit-entry {
+      padding: 12px 0;
+      border-bottom: 1px solid #38444d;
+      font-size: 0.9rem;
+    }
+
+    .audit-entry:last-child {
+      border-bottom: none;
+    }
+
+    .audit-timestamp {
+      color: #657786;
+      font-size: 0.8rem;
+    }
+
+    .audit-action {
+      color: #1da1f2;
+      font-weight: 600;
+      margin: 5px 0;
+    }
+
+    .audit-actor {
+      color: #657786;
+      font-size: 0.85rem;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #657786;
+    }
+
+    .error {
+      background: #8b3a3a;
+      border: 1px solid #d32f2f;
+      color: #ffcccc;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📊 Snakker Campaign Dashboard</h1>
+      <p class="subtitle">Real-time tracking for all campaigns through the Cortex automation pipeline</p>
+    </header>
+
+    <div id="campaigns-view">
+      <div id="campaigns-container" class="campaigns-grid">
+        <div class="loading">Loading campaigns...</div>
+      </div>
+    </div>
+
+    <div id="detail-view" class="detail-view">
+      <button class="back-btn" onclick="goBack()">← Back to Campaigns</button>
+      <div class="detail-container">
+        <div class="detail-header">
+          <h2 class="detail-title" id="detail-title"></h2>
+          <div class="detail-meta">
+            <div class="meta-item">
+              <label>Company</label>
+              <value id="detail-company"></value>
+            </div>
+            <div class="meta-item">
+              <label>Product</label>
+              <value id="detail-product"></value>
+            </div>
+            <div class="meta-item">
+              <label>Country</label>
+              <value id="detail-country"></value>
+            </div>
+            <div class="meta-item">
+              <label>Contact</label>
+              <value id="detail-contact"></value>
+            </div>
+            <div class="meta-item">
+              <label>Timeline</label>
+              <value id="detail-timeline"></value>
+            </div>
+            <div class="meta-item">
+              <label>Created</label>
+              <value id="detail-created"></value>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3 class="section-title">⚙️ Workflow Pipeline</h3>
+          <div class="workflow-stages" id="workflow-stages"></div>
+        </div>
+
+        <div class="section">
+          <h3 class="section-title">⚡ Flash Brief</h3>
+          <div class="flash-brief" id="flash-brief">
+            <p style="color: #657786;">No flash brief available yet.</p>
+          </div>
+          <button class="edit-btn" onclick="editFlashBrief()">📝 Edit Flash Brief</button>
+        </div>
+
+        <div class="section">
+          <h3 class="section-title">📋 Storyboard</h3>
+          <div class="storyboard-section" id="storyboard">
+            <p style="color: #657786;">No storyboard available yet.</p>
+          </div>
+          <button class="edit-btn" onclick="editStoryboard()">✏️ Edit Storyboard</button>
+        </div>
+
+        <div class="section">
+          <h3 class="section-title">📋 Audit Log</h3>
+          <div class="audit-log" id="audit-log"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="edit-modal" class="edit-modal">
+    <div class="edit-modal-content">
+      <div class="edit-modal-header" id="edit-modal-title"></div>
+      <textarea id="edit-modal-textarea" placeholder="Enter content here..."></textarea>
+      <div class="edit-modal-actions">
+        <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="modal-btn modal-btn-save" onclick="saveEdit()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let campaigns = [];
+    let currentCampaign = null;
+    let editingField = null;
+
+    async function loadCampaigns() {
+      try {
+        const response = await fetch('/api/campaigns');
+        campaigns = await response.json();
+        renderCampaigns();
+      } catch (error) {
+        console.error('Error loading campaigns:', error);
+        document.getElementById('campaigns-container').innerHTML = `
+          <div class="error">Failed to load campaigns. Make sure the backend server is running.</div>
+        `;
+      }
+    }
+
+    function renderCampaigns() {
+      const container = document.getElementById('campaigns-container');
+      if (campaigns.length === 0) {
+        container.innerHTML = '<div class="loading">No campaigns found.</div>';
+        return;
+      }
+
+      container.innerHTML = campaigns.map(c => `
+        <div class="campaign-card" onclick="viewCampaign('${c.id}')">
+          <div class="campaign-header">
+            <div class="campaign-title">${c.product}</div>
+            <div class="campaign-meta">${c.company} • ${c.country}</div>
+            <span class="campaign-status">${c.currentStage}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${c.progress}%"></div>
+          </div>
+          <div class="stage-info">
+            Progress: ${c.progress}% • Contact: ${c.contact}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function viewCampaign(id) {
+      try {
+        const response = await fetch(`/api/campaigns/${id}`);
+        currentCampaign = await response.json();
+        renderCampaignDetail();
+        document.getElementById('campaigns-view').style.display = 'none';
+        document.getElementById('detail-view').classList.add('active');
+      } catch (error) {
+        console.error('Error loading campaign:', error);
+        alert('Failed to load campaign details');
+      }
+    }
+
+    function renderCampaignDetail() {
+      const c = currentCampaign;
+      
+      document.getElementById('detail-title').textContent = `${c.product} — ${c.company}`;
+      document.getElementById('detail-company').textContent = c.company;
+      document.getElementById('detail-product').textContent = c.product;
+      document.getElementById('detail-country').textContent = c.country;
+      document.getElementById('detail-contact').textContent = c.contact;
+      document.getElementById('detail-timeline').textContent = c.timeline;
+      document.getElementById('detail-created').textContent = new Date(c.created).toLocaleDateString();
+
+      // Render workflow stages
+      const stagesContainer = document.getElementById('workflow-stages');
+      stagesContainer.innerHTML = c.stages.map((s, idx) => `
+        <div class="stage-item">
+          <div class="stage-number">${s.id}</div>
+          <div class="stage-details">
+            <div class="stage-name">${s.name}</div>
+            <div class="stage-meta">Owner: ${s.owner} • Started: ${s.started || 'Not started'}</div>
+          </div>
+          <span class="stage-status-badge status-${s.status}">${s.status}</span>
+        </div>
+      `).join('');
+
+      // Render flash brief
+      if (c.flashBrief) {
+        document.getElementById('flash-brief').innerHTML = `<pre>${escapeHtml(c.flashBrief)}</pre>`;
+      }
+
+      // Render storyboard
+      if (c.storyboard) {
+        document.getElementById('storyboard').innerHTML = `<pre>${escapeHtml(c.storyboard)}</pre>`;
+      }
+
+      // Render audit log
+      const auditContainer = document.getElementById('audit-log');
+      if (c.auditLog && c.auditLog.length > 0) {
+        auditContainer.innerHTML = c.auditLog.map(entry => `
+          <div class="audit-entry">
+            <div class="audit-timestamp">${new Date(entry.timestamp).toLocaleString()}</div>
+            <div class="audit-action">${entry.action}</div>
+            <div class="audit-actor">By: ${entry.actor}</div>
+            ${entry.details ? `<div style="color: #657786; font-size: 0.8rem; margin-top: 5px;">${entry.details}</div>` : ''}
+          </div>
+        `).join('');
+      } else {
+        auditContainer.innerHTML = '<p style="color: #657786;">No audit entries yet.</p>';
+      }
+    }
+
+    function goBack() {
+      currentCampaign = null;
+      document.getElementById('detail-view').classList.remove('active');
+      document.getElementById('campaigns-view').style.display = 'block';
+    }
+
+    function editStoryboard() {
+      editingField = 'storyboard';
+      document.getElementById('edit-modal-title').textContent = '✏️ Edit Storyboard';
+      document.getElementById('edit-modal-textarea').value = currentCampaign.storyboard || '';
+      document.getElementById('edit-modal').classList.add('active');
+    }
+
+    function editFlashBrief() {
+      editingField = 'flashBrief';
+      document.getElementById('edit-modal-title').textContent = '⚡ Edit Flash Brief';
+      document.getElementById('edit-modal-textarea').value = currentCampaign.flashBrief || '';
+      document.getElementById('edit-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('edit-modal').classList.remove('active');
+      editingField = null;
+    }
+
+    async function saveEdit() {
+      if (!editingField) return;
+
+      const newContent = document.getElementById('edit-modal-textarea').value;
+      
+      try {
+        const response = await fetch(`/api/campaigns/${currentCampaign.id}/storyboard`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ storyboardText: newContent })
+        });
+
+        if (response.ok) {
+          currentCampaign[editingField] = newContent;
+          renderCampaignDetail();
+          closeModal();
+          alert('Changes saved successfully!');
+        }
+      } catch (error) {
+        console.error('Error saving changes:', error);
+        alert('Failed to save changes');
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Load campaigns on page load
+    loadCampaigns();
+  </script>
+</body>
+</html>
