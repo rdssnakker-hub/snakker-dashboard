@@ -687,13 +687,21 @@
 
     async function loadCampaigns() {
       try {
+        console.log('Loading campaigns from /api/campaigns...');
         const response = await fetch('/api/campaigns');
+        console.log('Response status:', response.status);
+        
         const data = await response.json();
+        console.log('Campaign data:', data);
+        
         campaigns = Array.isArray(data) ? data : data.campaigns || [];
+        console.log('Parsed campaigns:', campaigns);
         
         // Populate filter options
         const companies = [...new Set(campaigns.map(c => c.company))];
         const regions = [...new Set(campaigns.map(c => c.country))];
+        
+        console.log('Companies:', companies, 'Regions:', regions);
         
         const companySelect = document.getElementById('filterCompany');
         const regionSelect = document.getElementById('filterRegion');
@@ -715,9 +723,12 @@
         renderCampaignList();
         if (campaigns.length > 0) {
           selectCampaign(campaigns[0]);
+        } else {
+          console.warn('No campaigns loaded!');
         }
       } catch (error) {
         console.error('Error loading campaigns:', error);
+        alert('Error: ' + error.message);
       }
     }
 
