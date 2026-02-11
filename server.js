@@ -462,6 +462,155 @@ app.post('/api/campaigns/:id/stage/:stageId', (req, res) => {
 // Serve static files (React frontend)
 app.use(express.static(path.join(__dirname, 'public')));
 
+// New interactive dashboard route
+app.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dashboard-interactive.html'));
+});
+
+// API endpoints for dashboard
+app.get('/api/campaign', (req, res) => {
+  const { company, country, product, number } = req.query;
+  
+  if (!company || !country || !product || !number) {
+    return res.status(400).json({ error: 'Missing query parameters' });
+  }
+
+  const campaignPath = path.join(CAMPAIGNS_PATH, company, country, product, String(number).padStart(3, '0'));
+  
+  if (!fs.existsSync(campaignPath)) {
+    return res.status(404).json({ error: 'Campaign not found' });
+  }
+
+  const campaignData = getCampaignData(campaignPath);
+  if (!campaignData) {
+    return res.status(404).json({ error: 'Campaign data not found' });
+  }
+
+  const brief = getFlashBrief(campaignPath);
+  
+  res.json({
+    success: true,
+    data: campaignData.intake || campaignData,
+    brief: brief || 'No brief available',
+    magicPatterns: campaignData.magicPatterns
+  });
+});
+
+app.post('/api/chat', (req, res) => {
+  const { company, country, product, number, message, campaignData } = req.body;
+  
+  if (!company || !country || !product || !number || !message) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Simple pattern matching for updates
+  const updates = { ...campaignData };
+  const changes = [];
+
+  if (message.toLowerCase().includes('audience') || message.toLowerCase().includes('target')) {
+    const match = message.match(/(?:audience|target|nurses|doctors|physicians|administrators|radiologists|healthcare providers)/i);
+    if (match) {
+      const newAudience = match[0];
+      if (newAudience !== updates.targetAudience) {
+        changes.push({
+          field: 'targetAudience',
+          oldValue: updates.targetAudience,
+          newValue: newAudience
+        });
+        updates.targetAudience = newAudience;
+      }
+    }
+  }
+
+  if (message.toLowerCase().includes('mobile') || message.toLowerCase().includes('desktop') || message.toLowerCase().includes('device')) {
+    const match = message.match(/(mobile|desktop|tablet)/i);
+    if (match) {
+      const newDevice = match[1];
+      if (newDevice !== updates.primaryDevice) {
+        changes.push({
+          field: 'primaryDevice',
+          oldValue: updates.primaryDevice,
+          newValue: newDevice
+        });
+        updates.primaryDevice = newDevice;
+      }
+    }
+  }
+
+  if (message.toLowerCase().includes('cta') || message.toLowerCase().includes('call to action') || message.match(/["']([^"']+)["']/)) {
+    const match = message.match(/["']([^"']+)["']/);
+    if (match) {
+      changes.push({
+        field: 'cta',
+        oldValue: updates.cta,
+        newValue: match[1]
+      });
+      updates.cta = match[1];
+    }
+  }
+
+  // Save updated campaign
+  const campaignPath = path.join(CAMPAIGNS_PATH, company, country, product, String(number).padStart(3, '0'));
+  const campaignJsonPath = path.join(campaignPath, 'campaign.json');
+  
+  if (fs.existsSync(campaignJsonPath)) {
+    const existing = JSON.parse(fs.readFileSync(campaignJsonPath, 'utf8'));
+    existing.intake = updates;
+    existing.updatedAt = new Date().toISOString();
+    fs.writeFileSync(campaignJsonPath, JSON.stringify(existing, null, 2));
+  }
+
+  res.json({
+    success: true,
+    response: changes.length > 0 ? `✅ Updated ${changes.length} field(s)` : '✅ Noted!',
+    updatedData: updates,
+    changes
+  });
+});
+
+app.post('/api/regenerate', (req, res) => {
+  const { company, country, product, number, campaignData } = req.body;
+  
+  if (!company || !country || !product || !number) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Generate mock FABP options
+  const options = [
+    {
+      number: 1,
+      title: 'Option 1: The Strategic Advantage',
+      content: 'Focus on the unique problem angle and how it benefits your audience'
+    },
+    {
+      number: 2,
+      title: 'Option 2: Real-World Evidence',
+      content: 'Lead with data and outcomes to demonstrate effectiveness'
+    },
+    {
+      number: 3,
+      title: 'Option 3: The Journey Focus',
+      content: 'Tell the story through customer outcomes and satisfaction'
+    }
+  ];
+
+  // Save to campaign
+  const campaignPath = path.join(CAMPAIGNS_PATH, company, country, product, String(number).padStart(3, '0'));
+  const optionsPath = path.join(campaignPath, 'fabp-options.json');
+  
+  fs.writeFileSync(optionsPath, JSON.stringify({
+    options,
+    regeneratedAt: new Date().toISOString(),
+    campaignData
+  }, null, 2));
+
+  res.json({
+    success: true,
+    options,
+    message: `✨ Regenerated ${options.length} FABP options`
+  });
+});
+
 // Catch-all for React SPA (must be last)
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
