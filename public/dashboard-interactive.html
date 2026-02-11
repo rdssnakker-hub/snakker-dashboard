@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snakker Cortex - Campaign Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8f8f9;
+      color: #1a1a1a;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    /* ===== LEFT: BRIEF & STORYBOARD ===== */
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #e5e5e5;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-header {
+      background: #ffffff;
+      padding: 20px;
+      border-bottom: 1px solid #e5e5e5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+      color: #1a1a1a;
+    }
+
+    .card-header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-small {
+      background: transparent;
+      border: 1px solid #d0d0d0;
+      color: #666;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s;
+    }
+
+    .btn-small:hover {
+      background: #f5f5f5;
+      border-color: #999;
+      color: #333;
+    }
+
+    .card-body {
+      padding: 20px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .flash-brief {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      color: #333;
+    }
+
+    .flash-brief .section {
+      margin: 12px 0;
+    }
+
+    .flash-brief .label {
+      color: #7c3aed;
+      font-weight: bold;
+    }
+
+    .storyboard {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .option-card {
+      background: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 16px;
+      transition: all 0.3s;
+    }
+
+    .option-card:hover {
+      border-color: #7c3aed;
+      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);
+    }
+
+    .option-number {
+      display: inline-block;
+      background: #7c3aed;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 28px;
+      margin-right: 8px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .option-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #1a1a1a;
+    }
+
+    .option-content {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #666;
+    }
+
+    .magic-patterns-links {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .link-btn {
+      background: #7c3aed;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .link-btn:hover {
+      background: #6d28d9;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
+    }
+
+    /* ===== RIGHT: CHAT INTERFACE ===== */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 800px;
+    }
+
+    .chat-box {
+      flex: 1;
+      background: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .chat-header {
+      background: #ffffff;
+      padding: 20px;
+      border-bottom: 1px solid #e5e5e5;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .chat-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+      color: #1a1a1a;
+    }
+
+    .chat-header-subtitle {
+      font-size: 12px;
+      color: #999;
+      margin-top: 6px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: #fafafa;
+    }
+
+    .message {
+      display: flex;
+      gap: 12px;
+      max-width: 90%;
+    }
+
+    .message.user {
+      justify-content: flex-end;
+      margin-left: auto;
+    }
+
+    .message.ai {
+      justify-content: flex-start;
+      margin-right: auto;
+    }
+
+    .message-bubble {
+      padding: 12px 16px;
+      border-radius: 8px;
+      line-height: 1.4;
+      font-size: 13px;
+    }
+
+    .message.user .message-bubble {
+      background: #7c3aed;
+      color: white;
+    }
+
+    .message.ai .message-bubble {
+      background: #ffffff;
+      border: 1px solid #e5e5e5;
+      color: #333;
+    }
+
+    .chat-input-area {
+      padding: 16px;
+      border-top: 1px solid #e5e5e5;
+      background: #ffffff;
+      border-radius: 0 0 8px 8px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: #ffffff;
+      border: 1px solid #d0d0d0;
+      border-radius: 6px;
+      padding: 12px;
+      color: #333;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    .btn-send {
+      background: #7c3aed;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .btn-send:hover {
+      background: #6d28d9;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
+    }
+
+    .btn-send:active {
+      transform: translateY(0);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .btn-primary {
+      background: #7c3aed;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      flex: 1;
+      transition: all 0.3s;
+    }
+
+    .btn-primary:hover {
+      background: #6d28d9;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      background: #ccc;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+
+      .chat-container {
+        min-height: 600px;
+      }
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #0f1419;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #1565c0;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #42a5f5;
+    }
+
+    .loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .status-badge {
+      display: inline-block;
+      background: rgba(76, 175, 80, 0.2);
+      color: #4caf50;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- LEFT PANEL: Brief & Storyboard -->
+    <div class="left-panel">
+      <!-- Flash Brief Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2>📋 Flash Brief</h2>
+          <div class="card-header-actions">
+            <button class="btn-small" onclick="copyBriefToClipboard()">Copy</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="flash-brief" id="flashBrief">
+            <div class="section">
+              <span class="label">LOADING BRIEF...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Storyboard Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2>🎬 3-Option Storyboard</h2>
+        </div>
+        <div class="card-body">
+          <div class="storyboard" id="storyboard">
+            <p style="color: #666;">Loading storyboard options...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Chat Interface -->
+    <div class="right-panel">
+      <div class="chat-box">
+        <div class="chat-header">
+          <h2>💬 Snakker Cortex Chat</h2>
+          <div class="chat-header-subtitle">Revise brief • Update storyboard • Regenerate designs</div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+          <div class="message ai">
+            <div class="message-bubble">
+              👋 Hi! I'm Snakker Cortex. Let's evolve this campaign together.
+              <br><br>
+              You can:
+              <br>• Change the problem or challenge
+              <br>• Update the campaign objective or CTA
+              <br>• Modify audience, device, or channel
+              <br>• Refine success metrics
+              <br><br>
+              Just chat naturally, and I'll update the brief. Then hit <strong>Regenerate</strong> to update the Magic Patterns designs.
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <div class="input-group">
+            <input 
+              type="text" 
+              class="chat-input" 
+              id="chatInput" 
+              placeholder="E.g., 'Change audience to nurses' or 'Update CTA to download guide'..."
+              onkeypress="handleKeyPress(event)"
+            >
+            <button class="btn-send" onclick="sendChatMessage()">Send</button>
+          </div>
+
+          <div class="action-buttons">
+            <button class="btn-primary" onclick="regenerateMagicPatterns()">
+              ✨ Regenerate Magic Patterns
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Get campaign from URL params or use default
+    function getCampaignParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        company: params.get('company') || 'ROCHE',
+        country: params.get('country') || 'Ivory_Coast',
+        product: params.get('product') || 'Vabysmo',
+        number: params.get('number') || '1'
+      };
+    }
+
+    let campaignParams = getCampaignParams();
+    let campaignData = {};
+    let storyboardOptions = [];
+    let apiBaseUrl = 'http://localhost:4444';
+
+    // Initialize dashboard
+    async function initDashboard() {
+      try {
+        // Load campaign data
+        const url = `${apiBaseUrl}/api/campaign?company=${campaignParams.company}&country=${campaignParams.country}&product=${campaignParams.product}&number=${campaignParams.number}`;
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (result.success) {
+          campaignData = result.data;
+          
+          // Load storyboard options (from campaign or generate defaults)
+          storyboardOptions = [
+            {
+              number: 1,
+              title: 'Option 1: Strategic Approach',
+              content: 'Strategic angle focusing on the primary problem and solution',
+              mockupId: `${campaignData.productName}-${campaignData.company}-1`.toLowerCase().replace(/\s+/g, '-')
+            },
+            {
+              number: 2,
+              title: 'Option 2: Alternative Angle',
+              content: 'Alternative strategic approach with different problem framing',
+              mockupId: `${campaignData.productName}-${campaignData.company}-2`.toLowerCase().replace(/\s+/g, '-')
+            },
+            {
+              number: 3,
+              title: 'Option 3: Outcome Focus',
+              content: 'Focus on outcomes and impact rather than features',
+              mockupId: `${campaignData.productName}-${campaignData.company}-3`.toLowerCase().replace(/\s+/g, '-')
+            }
+          ];
+          
+          renderFlashBrief();
+          renderStoryboard();
+          addChatMessage('ai', `👋 Loaded ${campaignData.productName} campaign. Let's refine it! What would you like to change?`);
+        } else {
+          throw new Error(result.error || 'Failed to load campaign');
+        }
+      } catch (err) {
+        console.error('Error loading campaign:', err);
+        addChatMessage('ai', `❌ Error loading campaign: ${err.message}`);
+      }
+    }
+
+    // Render flash brief
+    function renderFlashBrief() {
+      const brief = `
+╔════════════════════════════════════════════════════════════════════════╗
+║                    FLASH BRIEF: ${campaignData.productName}               ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+📍 THE PROBLEM
+${campaignData.challenge}
+
+💡 THE SOLUTION
+${campaignData.productName} | Brand: ${campaignData.brandName}
+Unique: ${campaignData.uniqueness}
+
+🎯 OBJECTIVE
+${campaignData.objective}
+CTA: "${campaignData.cta}"
+
+👥 AUDIENCE: ${campaignData.targetAudience}
+📱 DEVICE: ${campaignData.primaryDevice}
+📡 CHANNEL: ${campaignData.channel}
+
+📅 GO-LIVE: ${campaignData.goLiveDate}
+🏷️ STYLE: ${campaignData.branded ? 'Branded' : 'Unbranded'}
+📊 SUCCESS: ${campaignData.successMetrics}
+      `;
+      document.getElementById('flashBrief').textContent = brief;
+    }
+
+    // Render storyboard
+    function renderStoryboard() {
+      const html = storyboardOptions.map(option => `
+        <div class="option-card">
+          <div class="option-title">
+            <span class="option-number">${option.number}</span>
+            ${option.title}
+          </div>
+          <div class="option-content">
+            ${option.content}
+          </div>
+          <div class="magic-patterns-links">
+            <a href="#" class="link-btn" onclick="openMagicPatterns(${option.number}, 'editor'); return false;">
+              🔗 Edit
+            </a>
+            <a href="#" class="link-btn" onclick="openMagicPatterns(${option.number}, 'preview'); return false;">
+              👁️ Preview
+            </a>
+          </div>
+        </div>
+      `).join('');
+      document.getElementById('storyboard').innerHTML = html;
+    }
+
+    // Chat functions
+    function handleKeyPress(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChatMessage();
+      }
+    }
+
+    function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const message = input.value.trim();
+      
+      if (!message) return;
+
+      // Add user message
+      addChatMessage('user', message);
+      input.value = '';
+
+      // Send to API
+      processChatMessageViaAPI(message);
+    }
+
+    async function processChatMessageViaAPI(message) {
+      try {
+        const response = await fetch(`${apiBaseUrl}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            company: campaignParams.company,
+            country: campaignParams.country,
+            product: campaignParams.product,
+            number: campaignParams.number,
+            message: message,
+            campaignData: campaignData
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Update local campaign data
+          campaignData = result.updatedData;
+
+          // Show changes made
+          if (result.changes && result.changes.length > 0) {
+            const changeList = result.changes
+              .map(c => `${c.field}: ${c.oldValue} → ${c.newValue}`)
+              .join('\n');
+            addChatMessage('ai', `✅ Updated!\n\n${changeList}`);
+          } else {
+            addChatMessage('ai', result.response || '✅ Noted!');
+          }
+
+          // Re-render brief
+          renderFlashBrief();
+        } else {
+          addChatMessage('ai', `❌ Error: ${result.error}`);
+        }
+      } catch (err) {
+        console.error('Chat error:', err);
+        addChatMessage('ai', `❌ Connection error: ${err.message}`);
+      }
+    }
+
+    function addChatMessage(type, text) {
+      const container = document.getElementById('chatMessages');
+      const message = document.createElement('div');
+      message.className = `message ${type}`;
+      message.innerHTML = `<div class="message-bubble">${text}</div>`;
+      container.appendChild(message);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function copyBriefToClipboard() {
+      const brief = document.getElementById('flashBrief').textContent;
+      navigator.clipboard.writeText(brief).then(() => {
+        alert('Brief copied to clipboard!');
+      });
+    }
+
+    function openMagicPatterns(optionNum, type) {
+      // Generate mockupId from campaign data
+      const mockupId = storyboardOptions[optionNum - 1]?.mockupId ||
+                      `${campaignData.productName}-${campaignData.company}-${optionNum}`.toLowerCase().replace(/\s+/g, '-');
+      
+      const url = type === 'editor' 
+        ? `https://editor.magicpatterns.com/patterns/${mockupId}`
+        : `https://www.magicpatterns.com/patterns/${mockupId}`;
+      
+      window.open(url, '_blank');
+    }
+
+    async function regenerateMagicPatterns() {
+      const btn = event.target;
+      btn.disabled = true;
+      addChatMessage('ai', '✨ Regenerating Magic Patterns designs with updated brief...');
+
+      try {
+        const response = await fetch(`${apiBaseUrl}/api/regenerate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            company: campaignParams.company,
+            country: campaignParams.country,
+            product: campaignParams.product,
+            number: campaignParams.number,
+            campaignData: campaignData
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Update storyboard with new options
+          if (result.options && result.options.length > 0) {
+            storyboardOptions = result.options.map((opt, i) => ({
+              ...opt,
+              number: i + 1,
+              mockupId: `${campaignData.productName}-${campaignData.company}-${i + 1}`.toLowerCase().replace(/\s+/g, '-')
+            }));
+            renderStoryboard();
+          }
+
+          addChatMessage('ai', `✅ ${result.message}\n\nNew designs are ready! Check the links below.`);
+        } else {
+          addChatMessage('ai', `❌ Error: ${result.error}`);
+        }
+      } catch (err) {
+        console.error('Regenerate error:', err);
+        addChatMessage('ai', `❌ Connection error: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Initialize on load
+    window.addEventListener('load', initDashboard);
+  </script>
+</body>
+</html>

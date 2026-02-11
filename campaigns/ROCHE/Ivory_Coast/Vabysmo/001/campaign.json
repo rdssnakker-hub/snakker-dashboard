@@ -19,5 +19,17 @@
     "Social",
     "Website"
   ],
-  "status": "Ready for mockup generation"
+  "status": "Ready for mockup generation",
+  "intake": {},
+  "magicPatterns": {
+    "mockupId": "vabysmo-roche-001",
+    "editorUrl": "https://editor.magicpatterns.com/patterns/vabysmo-roche-001",
+    "previewUrl": "https://www.magicpatterns.com/patterns/vabysmo-roche-001",
+    "createdAt": "2026-02-11T09:07:01.025Z"
+  },
+  "dashboard": {
+    "enabled": true,
+    "createdAt": "2026-02-11T09:07:01.025Z",
+    "url": "http://localhost:4444/?company=ROCHE&country=Ivory_Coast&product=Vabysmo&number=001"
+  }
 }

@@ -1,0 +1,16 @@
+{
+  "company": "ROCHE",
+  "country": "Ivory_Coast",
+  "product": "Vabysmo",
+  "number": "001",
+  "dashboardUrl": "http://localhost:4444/?company=ROCHE&country=Ivory_Coast&product=Vabysmo&number=001",
+  "apiBase": "http://localhost:4444",
+  "features": {
+    "chat": true,
+    "flashBrief": true,
+    "storyboard": true,
+    "magicPatterns": true,
+    "regenerate": true
+  },
+  "createdAt": "2026-02-11T09:07:01.025Z"
+}
