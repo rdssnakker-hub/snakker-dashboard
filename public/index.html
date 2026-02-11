@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html 
+          setTimeout(() => { addChatMessage("ai", "✅ Done! Chat will close in 3 seconds..."); }, 500);
+          setTimeout(() => { hideChatInterface(); }, 3500);lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1005,6 +1007,9 @@
       const input = document.getElementById('chat-input');
       const section = document.getElementById('chat-section');
       
+      // SHOW chat section
+      section.style.display = 'block';
+      
       // Scroll to chat section
       section.scrollIntoView({ behavior: 'smooth', block: 'center' });
       
@@ -1020,67 +1025,9 @@
       
       // Add visual indicator
       section.style.border = '2px solid var(--purple-600)';
-      section.style.borderRadius = '8px';
       setTimeout(() => {
         section.style.border = '';
       }, 2000);
-    }
-
-    async function sendChatMessage() {
-      const input = document.getElementById('chat-input');
-      if (!input) return;
-      const message = input.value.trim();
-      if (!message || !currentCampaign) return;
-
-      addChatMessage('user', message);
-      input.value = '';
-
-      try {
-        const response = await fetch(`/api/campaigns/${currentCampaign.id}/chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message })
-        });
-
-        const result = await response.json();
-        if (result.success) {
-          addChatMessage('ai', result.response || '✅ Updated!');
-          // Refresh campaign data
-          const refreshResp = await fetch(`/api/campaigns/${currentCampaign.id}`);
-          currentCampaign = await refreshResp.json();
-          renderCampaignDetail();
-        } else {
-          addChatMessage('ai', `❌ ${result.error || 'Error'}`);
-        }
-      } catch (error) {
-        addChatMessage('ai', `❌ Error: ${error.message}`);
-      }
-    }
-
-    async function regenerateMagicPatterns() {
-      if (!currentCampaign) return;
-      
-      addChatMessage('ai', '✨ Regenerating Magic Patterns...');
-
-      try {
-        const response = await fetch(`/api/campaigns/${currentCampaign.id}/regenerate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        });
-
-        const result = await response.json();
-        if (result.success) {
-          addChatMessage('ai', '✅ Regenerated! New designs ready.');
-          // Refresh campaign data
-          const refreshResp = await fetch(`/api/campaigns/${currentCampaign.id}`);
-          currentCampaign = await refreshResp.json();
-          renderCampaignDetail();
-        } else {
-          addChatMessage('ai', `❌ ${result.error || 'Error'}`);
-        }
-      } catch (error) {
-        addChatMessage('ai', `❌ Error: ${error.message}`);
-      }
     }
 
     function requestFlashBriefRevision() {
@@ -1327,6 +1274,14 @@
         });
       });
     });
+
+  
+    function hideChatInterface() {
+      const section = document.getElementById('chat-section');
+      section.style.display = 'none';
+      document.getElementById('chat-input').value = '';
+      document.getElementById('chat-messages').innerHTML = '<div style="padding: 12px; background: var(--bg-secondary); border-radius: 6px; font-size: 0.9375rem; color: var(--text-secondary); border-left: 3px solid var(--purple-600);"><strong>👋 Hi! I'm Snakker Cortex.</strong><br>I can help you update this campaign. Chat naturally about changes you'd like to make.</div>';
+    }
 
   </script>
 </body>
