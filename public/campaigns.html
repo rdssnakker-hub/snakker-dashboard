@@ -675,8 +675,9 @@
     <div class="main" id="main-content">
       <div class="empty-state">
         <div class="empty-state-icon">📋</div>
-        <div class="empty-state-text">Select a campaign to get started</div>
-        <div class="empty-state-subtext">Choose from the list on the left to view and manage</div>
+        <div class="empty-state-text">Loading campaigns...</div>
+        <div class="empty-state-subtext">Fetching data from server</div>
+        <pre id="debug-log" style="text-align: left; font-size: 11px; color: #999; margin-top: 20px; max-width: 400px;"></pre>
       </div>
     </div>
   </div>
@@ -685,23 +686,37 @@
     let campaigns = [];
     let selectedCampaign = null;
 
+    function updateDebugLog(msg) {
+      const log = document.getElementById('debug-log');
+      if (log) {
+        log.textContent += msg + '\n';
+        console.log('[DEBUG]', msg);
+      }
+    }
+
     async function loadCampaigns() {
       try {
-        console.log('Loading campaigns from /api/campaigns...');
+        updateDebugLog('📡 Fetching /api/campaigns...');
         const response = await fetch('/api/campaigns');
-        console.log('Response status:', response.status);
+        updateDebugLog(`📊 Response status: ${response.status}`);
+        
+        if (!response.ok) {
+          updateDebugLog(`❌ HTTP ${response.status}: ${response.statusText}`);
+          throw new Error(`HTTP ${response.status}`);
+        }
         
         const data = await response.json();
-        console.log('Campaign data:', data);
+        updateDebugLog(`📦 Data: ${JSON.stringify(data).substring(0, 100)}...`);
         
         campaigns = Array.isArray(data) ? data : data.campaigns || [];
-        console.log('Parsed campaigns:', campaigns);
+        updateDebugLog(`✅ Loaded ${campaigns.length} campaigns`);
         
         // Populate filter options
         const companies = [...new Set(campaigns.map(c => c.company))];
         const regions = [...new Set(campaigns.map(c => c.country))];
         
-        console.log('Companies:', companies, 'Regions:', regions);
+        updateDebugLog(`🏢 Companies: ${companies.join(', ')}`);
+        updateDebugLog(`🌍 Regions: ${regions.join(', ')}`);
         
         const companySelect = document.getElementById('filterCompany');
         const regionSelect = document.getElementById('filterRegion');
@@ -722,13 +737,14 @@
         
         renderCampaignList();
         if (campaigns.length > 0) {
+          updateDebugLog(`🎯 Selecting first campaign...`);
           selectCampaign(campaigns[0]);
         } else {
-          console.warn('No campaigns loaded!');
+          updateDebugLog('⚠️ No campaigns found!');
         }
       } catch (error) {
+        updateDebugLog(`💥 Error: ${error.message}`);
         console.error('Error loading campaigns:', error);
-        alert('Error: ' + error.message);
       }
     }
 
