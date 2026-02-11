@@ -688,7 +688,30 @@
     async function loadCampaigns() {
       try {
         const response = await fetch('/api/campaigns');
-        campaigns = await response.json();
+        const data = await response.json();
+        campaigns = Array.isArray(data) ? data : data.campaigns || [];
+        
+        // Populate filter options
+        const companies = [...new Set(campaigns.map(c => c.company))];
+        const regions = [...new Set(campaigns.map(c => c.country))];
+        
+        const companySelect = document.getElementById('filterCompany');
+        const regionSelect = document.getElementById('filterRegion');
+        
+        companies.forEach(company => {
+          const option = document.createElement('option');
+          option.value = company;
+          option.textContent = company;
+          companySelect.appendChild(option);
+        });
+        
+        regions.forEach(region => {
+          const option = document.createElement('option');
+          option.value = region;
+          option.textContent = region;
+          regionSelect.appendChild(option);
+        });
+        
         renderCampaignList();
         if (campaigns.length > 0) {
           selectCampaign(campaigns[0]);
