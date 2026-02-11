@@ -518,13 +518,13 @@
 
         <div class="section">
           <h3 class="section-title">💬 Campaign Chat</h3>
-          <div id="chat-messages" style="background: #fafafa; border: 1px solid #e5e5e5; border-radius: 8px; padding: 16px; height: 250px; overflow-y: auto; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;">
+          <div id="chat-messages-container" style="background: #fafafa; border: 1px solid #e5e5e5; border-radius: 8px; padding: 16px; height: 250px; overflow-y: auto; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;">
             <div style="padding: 10px; background: #f0f0f0; border-radius: 6px; font-size: 13px;">
               👋 Hi! Chat to update this campaign. Try: "Change audience to nurses" or "Make it mobile-first"
             </div>
           </div>
           <div style="display: flex; gap: 10px;">
-            <input type="text" id="chat-input" placeholder="Type a message..." style="flex: 1; padding: 10px; border: 1px solid #d0d0d0; border-radius: 6px; font-size: 13px;" onkeypress="if(event.key==='Enter') sendChatMessage()">
+            <input type="text" id="chat-input-field" placeholder="Type a message..." style="flex: 1; padding: 10px; border: 1px solid #d0d0d0; border-radius: 6px; font-size: 13px;" onkeypress="if(event.key==='Enter') sendChatMessage()">
             <button class="edit-btn" onclick="sendChatMessage()">Send</button>
             <button class="edit-btn" onclick="regeneratePatterns()">✨ Regenerate</button>
           </div>
@@ -755,12 +755,13 @@
     }
 
     function addChatMessage(role, text) {
-      const messagesDiv = document.getElementById('chat-messages');
+      const messagesDiv = document.getElementById('chat-messages-container');
+      if (!messagesDiv) return;
       const msg = document.createElement('div');
-      msg.style.cssText = `padding: 8px 12px; border-radius: 6px; font-size: 12px; max-width: 80%; ${
+      msg.style.cssText = `padding: 8px 12px; border-radius: 6px; font-size: 12px; max-width: 80%; word-wrap: break-word; ${
         role === 'user' 
           ? 'background: #7c3aed; color: white; align-self: flex-end; margin-left: auto;'
-          : 'background: #f0f0f0; color: #1a1a1a;'
+          : 'background: #e5e5e5; color: #1a1a1a;'
       }`;
       msg.textContent = text;
       messagesDiv.appendChild(msg);
@@ -768,7 +769,8 @@
     }
 
     async function sendChatMessage() {
-      const input = document.getElementById('chat-input');
+      const input = document.getElementById('chat-input-field');
+      if (!input) return;
       const message = input.value.trim();
       if (!message || !currentCampaign) return;
 

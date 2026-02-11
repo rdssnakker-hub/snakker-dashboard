@@ -462,11 +462,6 @@ app.post('/api/campaigns/:id/stage/:stageId', (req, res) => {
 // Serve static files (React frontend)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// New campaigns dashboard route
-app.get('/campaigns', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'campaigns.html'));
-});
-
 // Chat message endpoint for campaigns dashboard
 app.post('/api/campaigns/:id/chat', (req, res) => {
   const { message } = req.body;
