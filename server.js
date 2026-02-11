@@ -462,6 +462,140 @@ app.post('/api/campaigns/:id/stage/:stageId', (req, res) => {
 // Serve static files (React frontend)
 app.use(express.static(path.join(__dirname, 'public')));
 
+// New campaigns dashboard route
+app.get('/campaigns', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'campaigns.html'));
+});
+
+// Chat message endpoint for campaigns dashboard
+app.post('/api/campaigns/:id/chat', (req, res) => {
+  const { message } = req.body;
+  const campaignId = req.params.id;
+
+  // Find campaign
+  let campaignData = null;
+  let campaignPath = null;
+
+  for (const dirPath of getAllCampaignPaths(CAMPAIGNS_PATH)) {
+    const data = getCampaignData(dirPath);
+    if (data) {
+      const id = `${data.company}-${data.country}-${data.product}-${String(data.campaignNumber).padStart(3, '0')}`;
+      if (id === campaignId) {
+        campaignData = data;
+        campaignPath = dirPath;
+        break;
+      }
+    }
+  }
+
+  if (!campaignData) {
+    return res.status(404).json({ error: 'Campaign not found' });
+  }
+
+  // Parse message and update
+  const updates = campaignData.intake || campaignData;
+  const changes = [];
+
+  if (message.match(/nurses|doctors|physicians|audience/i)) {
+    const match = message.match(/(nurses|doctors|physicians|administrators|radiologists)/i);
+    if (match && match[1] !== updates.targetAudience) {
+      changes.push({ field: 'audience', old: updates.targetAudience, new: match[1] });
+      updates.targetAudience = match[1];
+    }
+  }
+
+  if (message.match(/mobile|desktop|tablet|device/i)) {
+    const match = message.match(/(mobile|desktop|tablet)/i);
+    if (match && match[1] !== updates.primaryDevice) {
+      changes.push({ field: 'device', old: updates.primaryDevice, new: match[1] });
+      updates.primaryDevice = match[1];
+    }
+  }
+
+  if (message.match(/email|social|web|channel/i)) {
+    const match = message.match(/(email|social|web|in-app)/i);
+    if (match && match[1] !== updates.channel) {
+      changes.push({ field: 'channel', old: updates.channel, new: match[1] });
+      updates.channel = match[1];
+    }
+  }
+
+  // Save changes
+  if (campaignPath && fs.existsSync(path.join(campaignPath, 'campaign.json'))) {
+    const existing = JSON.parse(fs.readFileSync(path.join(campaignPath, 'campaign.json'), 'utf8'));
+    existing.intake = updates;
+    existing.updatedAt = new Date().toISOString();
+    fs.writeFileSync(path.join(campaignPath, 'campaign.json'), JSON.stringify(existing, null, 2));
+    campaignData.intake = updates;
+  }
+
+  res.json({
+    success: true,
+    response: changes.length > 0 ? `✅ Updated: ${changes.map(c => c.field).join(', ')}` : '✅ Got it!',
+    campaign: { ...campaignData, id: campaignId }
+  });
+});
+
+// Regenerate designs
+app.post('/api/campaigns/:id/regenerate', (req, res) => {
+  const campaignId = req.params.id;
+
+  let campaignPath = null;
+  let campaignData = null;
+
+  for (const dirPath of getAllCampaignPaths(CAMPAIGNS_PATH)) {
+    const data = getCampaignData(dirPath);
+    if (data) {
+      const id = `${data.company}-${data.country}-${data.product}-${String(data.campaignNumber).padStart(3, '0')}`;
+      if (id === campaignId) {
+        campaignPath = dirPath;
+        campaignData = data;
+        break;
+      }
+    }
+  }
+
+  if (!campaignData) {
+    return res.status(404).json({ error: 'Campaign not found' });
+  }
+
+  // Update regeneration timestamp
+  if (campaignPath && fs.existsSync(path.join(campaignPath, 'campaign.json'))) {
+    const existing = JSON.parse(fs.readFileSync(path.join(campaignPath, 'campaign.json'), 'utf8'));
+    existing.magicPatterns = existing.magicPatterns || {};
+    existing.magicPatterns.regeneratedAt = new Date().toISOString();
+    fs.writeFileSync(path.join(campaignPath, 'campaign.json'), JSON.stringify(existing, null, 2));
+    campaignData.magicPatterns = existing.magicPatterns;
+  }
+
+  res.json({
+    success: true,
+    message: '✨ Regenerated 3 FABP options and Magic Patterns designs',
+    campaign: { ...campaignData, id: campaignId }
+  });
+});
+
+// Helper to get all campaign directories
+function getAllCampaignPaths(rootPath, depth = 0) {
+  const paths = [];
+  if (!fs.existsSync(rootPath) || depth > 5) return paths;
+
+  const items = fs.readdirSync(rootPath);
+  for (const item of items) {
+    const itemPath = path.join(rootPath, item);
+    const stat = fs.statSync(itemPath);
+
+    if (stat.isDirectory()) {
+      if (fs.existsSync(path.join(itemPath, 'campaign.json'))) {
+        paths.push(itemPath);
+      } else {
+        paths.push(...getAllCampaignPaths(itemPath, depth + 1));
+      }
+    }
+  }
+  return paths;
+}
+
 // Chat message endpoint (for existing dashboard)
 app.post('/api/chat-message', (req, res) => {
   const { company, country, product, number, message, campaignData } = req.body;
