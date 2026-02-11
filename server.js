@@ -223,6 +223,31 @@ app.get('/api/campaigns/:id', (req, res) => {
   res.status(404).json({ error: 'Campaign not found' });
 });
 
+// API: Update campaign dates
+app.put('/api/campaigns/:id', (req, res) => {
+  const campaignPaths = findAllCampaigns(CAMPAIGNS_PATH);
+  
+  for (const campaignPath of campaignPaths) {
+    const data = getCampaignData(campaignPath);
+    if (!data) continue;
+    
+    const campaignId = `${data.company}-${data.country}-${data.product}-${String(data.campaignNumber).padStart(3, '0')}`;
+    if (campaignId === req.params.id) {
+      const jsonPath = path.join(campaignPath, 'campaign.json');
+      
+      if (req.body.stages) {
+        data.stages = req.body.stages;
+      }
+      
+      fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2));
+      
+      return res.json({ success: true, ...data });
+    }
+  }
+  
+  res.status(404).json({ error: 'Campaign not found' });
+});
+
 // API: Update storyboard
 app.post('/api/campaigns/:id/storyboard', (req, res) => {
   const { storyboardText } = req.body;

@@ -657,6 +657,47 @@
       font-weight: 600;
       color: var(--text-primary);
     }
+
+    /* DATE MANAGEMENT */
+    .stage-item-date {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 0.8125rem;
+    }
+
+    .date-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .date-status-dot.on-track {
+      background: #22c55e;
+    }
+
+    .date-status-dot.at-risk {
+      background: #f59e0b;
+    }
+
+    .date-status-dot.overdue {
+      background: #ef4444;
+    }
+
+    .stage-date-input {
+      padding: 4px 8px;
+      border: 1px solid var(--border-light);
+      border-radius: 4px;
+      font-size: 0.8125rem;
+      cursor: pointer;
+    }
+
+    .stage-date-input:focus {
+      outline: none;
+      border-color: var(--purple-600);
+      box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+    }
 </style>
 </head>
 <body>
@@ -867,16 +908,28 @@
 
       // Render workflow stages
       const stagesContainer = document.getElementById('workflow-stages');
-      stagesContainer.innerHTML = c.stages.map((s, idx) => `
-        <div class="stage-item">
-          <div class="stage-number">${s.id}</div>
-          <div class="stage-details">
-            <div class="stage-name">${s.name}</div>
-            <div class="stage-meta">Owner: ${s.owner} • Started: ${s.started || 'Not started'}</div>
+      stagesContainer.innerHTML = c.stages.map((s, idx) => {
+        const dateStatus = getDateStatus(s.dueDate);
+        const dateVal = s.dueDate ? new Date(s.dueDate).toISOString().split('T')[0] : '';
+        return `
+          <div class="stage-item">
+            <div class="stage-number">${s.id}</div>
+            <div class="stage-details">
+              <div class="stage-name">${s.name}</div>
+              <div class="stage-meta">Owner: ${s.owner} • Started: ${s.started || 'Not started'}</div>
+              <div class="stage-item-date">
+                <div class="date-status-dot ${dateStatus.status}"></div>
+                <input type="date" 
+                       class="stage-date-input"
+                       value="${dateVal}"
+                       onchange="saveStageDueDate(${s.id}, this.value)">
+                <span>${dateStatus.text}</span>
+              </div>
+            </div>
+            <span class="stage-status-badge status-${s.status}">${s.status}</span>
           </div>
-          <span class="stage-status-badge status-${s.status}">${s.status}</span>
-        </div>
-      `).join('');
+        `;
+      }).join('');
 
       // Render flash brief
       if (c.flashBrief) {
@@ -1281,6 +1334,47 @@
       section.style.display = 'none';
       document.getElementById('chat-input').value = '';
       document.getElementById('chat-messages').innerHTML = '<div style="padding: 12px; background: var(--bg-secondary); border-radius: 6px; font-size: 0.9375rem; color: var(--text-secondary); border-left: 3px solid var(--purple-600);"><strong>👋 Hi! I'm Snakker Cortex.</strong><br>I can help you update this campaign. Chat naturally about changes you'd like to make.</div>';
+    }
+
+
+    // DATE MANAGEMENT FUNCTIONS
+    function getDateStatus(dueDate) {
+      if (!dueDate) return { status: 'not-set', text: 'No due date', days: null };
+      
+      const due = new Date(dueDate);
+      due.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const days = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+      
+      if (days < 0) {
+        return { status: 'overdue', text: `Overdue by ${Math.abs(days)} days`, days };
+      } else if (days <= 3) {
+        return { status: 'at-risk', text: `Due in ${days} days`, days };
+      } else {
+        return { status: 'on-track', text: `Due in ${days} days`, days };
+      }
+    }
+
+    function saveStageDueDate(stageId, dateStr) {
+      if (!currentCampaign) return;
+      
+      const stage = currentCampaign.stages.find(s => s.id === stageId);
+      if (!stage) return;
+      
+      stage.dueDate = dateStr || null;
+      
+      // Save to server
+      fetch(`/api/campaigns/${currentCampaign.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stages: currentCampaign.stages })
+      })
+        .then(() => {
+          console.log('Date saved');
+          renderCampaignDetail();
+        })
+        .catch(err => console.error('Error saving date:', err));
     }
 
   </script>
