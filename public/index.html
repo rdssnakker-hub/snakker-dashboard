@@ -715,7 +715,7 @@
           </div>
           <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
             <button class="edit-btn" onclick="editFlashBrief()">📝 Edit Flash Brief</button>
-            <button class="edit-btn" onclick="requestFlashBriefRevision()">💬 Request Revision</button>
+            <button class="edit-btn" onclick="focusChatForUpdate('flash-brief')">💬 Update via Chat</button>
             <button class="edit-btn" onclick="regenerateMagicPatterns()" style="background: #7c3aed; color: white;">✨ Regenerate Magic Patterns</button>
           </div>
           <div id="flash-brief-revisions" style="margin-top: 15px; font-size: 0.85rem; color: #4b5563;"></div>
@@ -749,7 +749,7 @@
           </div>
           <div style="display: flex; gap: 10px; margin-top: 10px;">
             <button class="edit-btn" onclick="editStoryboard()">✏️ Edit Storyboard</button>
-            <button class="edit-btn" onclick="requestStoryboardRevision()">💬 Request Revision</button>
+            <button class="edit-btn" onclick="focusChatForUpdate('storyboard')">💬 Update via Chat</button>
           </div>
           <div id="storyboard-revisions" style="margin-top: 15px; font-size: 0.85rem; color: #4b5563;"></div>
         </div>
@@ -761,18 +761,6 @@
           </div>
         </div>
 
-        <div class="section">
-          <h3 class="section-title">💬 Campaign Chat</h3>
-          <div id="chat-messages-container" role="log" aria-label="Chat conversation" aria-live="polite" style="background: #fafafa; border: 1px solid #e5e5e5; border-radius: 8px; padding: 16px; height: 250px; overflow-y: auto; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;">
-            <div style="padding: 10px; background: #f0f0f0; border-radius: 6px; font-size: 13px;">
-              👋 Hi! Chat to update this campaign. Try: "Change audience to nurses" or "Make it mobile-first"
-            </div>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <input type="text" id="chat-input-field" placeholder="Type a message..." style="flex: 1; padding: 10px; border: 1px solid #d0d0d0; border-radius: 6px; font-size: 13px;" onkeypress="if(event.key==='Enter') sendChatMessage()">
-            <button class="edit-btn" onclick="sendChatMessage()">Send</button>
-            <button class="edit-btn" onclick="regeneratePatterns()">✨ Regenerate</button>
-          </div>
         </div>
 
         <div class="section">
@@ -1013,8 +1001,33 @@
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
+    function focusChatForUpdate(field) {
+      const input = document.getElementById('chat-input');
+      const section = document.getElementById('chat-section');
+      
+      // Scroll to chat section
+      section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Set placeholder based on field
+      const placeholders = {
+        'flash-brief': 'E.g., "Update the flash brief to focus on nurses"',
+        'storyboard': 'E.g., "Make the storyboard more mobile-focused"'
+      };
+      
+      input.placeholder = placeholders[field] || 'Chat with Snakker Cortex...';
+      input.focus();
+      input.setAttribute('data-update-field', field);
+      
+      // Add visual indicator
+      section.style.border = '2px solid var(--purple-600)';
+      section.style.borderRadius = '8px';
+      setTimeout(() => {
+        section.style.border = '';
+      }, 2000);
+    }
+
     async function sendChatMessage() {
-      const input = document.getElementById('chat-input-field');
+      const input = document.getElementById('chat-input');
       if (!input) return;
       const message = input.value.trim();
       if (!message || !currentCampaign) return;
@@ -1044,7 +1057,7 @@
       }
     }
 
-    async function regeneratePatterns() {
+    async function regenerateMagicPatterns() {
       if (!currentCampaign) return;
       
       addChatMessage('ai', '✨ Regenerating Magic Patterns...');
