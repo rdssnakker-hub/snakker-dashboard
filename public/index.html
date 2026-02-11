@@ -62,8 +62,8 @@
 
     .campaign-card:hover {
       border-color: #7c3aed;
-      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
-      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+      transform: translateY(-4px);
     }
 
     .campaign-header {
@@ -231,7 +231,7 @@
 
     .stage-meta {
       font-size: 0.8rem;
-      color: #999;
+      color: #4b5563;
     }
 
     .stage-status-badge {
@@ -252,8 +252,8 @@
     }
 
     .status-pending {
-      background: #d1d5db;
-      color: #1a1a1a;
+      background: #d97706;
+      color: #ffffff;
     }
 
     .flash-brief, .storyboard-section {
@@ -267,14 +267,16 @@
     }
 
     .flash-brief pre, .storyboard-section pre {
-      background: #fafafa;
-      color: #1a1a1a;
+      background: #f3f4f6;
+      color: #1f2937;
       padding: 15px;
-      border-radius: 4px;
+      border-radius: 8px;
       overflow-x: auto;
       font-size: 0.85rem;
       line-height: 1.5;
-      border: 1px solid #e5e5e5;
+      border-left: 4px solid #7c3aed;
+      border: 1px solid #d1d5db;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
 
     .edit-btn {
@@ -286,6 +288,18 @@
       cursor: pointer;
       font-size: 0.85rem;
       margin-top: 10px;
+      transition: all 0.2s;
+    }
+
+    .edit-btn:hover {
+      background: #6d28d9;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .edit-btn:focus-visible {
+      outline: 3px solid #7c3aed;
+      outline-offset: 2px;
     }
 
     .edit-btn:hover {
@@ -410,6 +424,59 @@
       border-radius: 6px;
       margin-bottom: 20px;
     }
+  
+    /* INPUT STYLING - Improved accessibility */
+    input[type="text"],
+    textarea {
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      transition: all 0.2s;
+      color: #1a1a1a;
+    }
+
+    input[type="text"]::placeholder,
+    textarea::placeholder {
+      color: #9ca3af;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+      background: #fafafa;
+    }
+
+    input[type="text"]:disabled,
+    textarea:disabled {
+      background: #f3f4f6;
+      color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    /* Interactive elements - Focus states */
+    .campaign-card:focus-visible {
+      outline: 3px solid #7c3aed;
+      outline-offset: 2px;
+    }
+
+    button:focus-visible {
+      outline: 3px solid #7c3aed;
+      outline-offset: 2px;
+    }
+
+    /* Stage items - Hover state */
+    .stage-item {
+      transition: all 0.2s;
+    }
+
+    .stage-item:hover {
+      background: #f9fafb;
+    }
+
   </style>
 </head>
 <body>
