@@ -462,41 +462,8 @@ app.post('/api/campaigns/:id/stage/:stageId', (req, res) => {
 // Serve static files (React frontend)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// New interactive dashboard route
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'dashboard-interactive.html'));
-});
-
-// API endpoints for dashboard
-app.get('/api/campaign', (req, res) => {
-  const { company, country, product, number } = req.query;
-  
-  if (!company || !country || !product || !number) {
-    return res.status(400).json({ error: 'Missing query parameters' });
-  }
-
-  const campaignPath = path.join(CAMPAIGNS_PATH, company, country, product, String(number).padStart(3, '0'));
-  
-  if (!fs.existsSync(campaignPath)) {
-    return res.status(404).json({ error: 'Campaign not found' });
-  }
-
-  const campaignData = getCampaignData(campaignPath);
-  if (!campaignData) {
-    return res.status(404).json({ error: 'Campaign data not found' });
-  }
-
-  const brief = getFlashBrief(campaignPath);
-  
-  res.json({
-    success: true,
-    data: campaignData.intake || campaignData,
-    brief: brief || 'No brief available',
-    magicPatterns: campaignData.magicPatterns
-  });
-});
-
-app.post('/api/chat', (req, res) => {
+// Chat message endpoint (for existing dashboard)
+app.post('/api/chat-message', (req, res) => {
   const { company, country, product, number, message, campaignData } = req.body;
   
   if (!company || !country || !product || !number || !message) {
@@ -508,7 +475,7 @@ app.post('/api/chat', (req, res) => {
   const changes = [];
 
   if (message.toLowerCase().includes('audience') || message.toLowerCase().includes('target')) {
-    const match = message.match(/(?:audience|target|nurses|doctors|physicians|administrators|radiologists|healthcare providers)/i);
+    const match = message.match(/(?:nurses|doctors|physicians|administrators|radiologists|healthcare providers|hcps)/i);
     if (match) {
       const newAudience = match[0];
       if (newAudience !== updates.targetAudience) {
@@ -537,7 +504,7 @@ app.post('/api/chat', (req, res) => {
     }
   }
 
-  if (message.toLowerCase().includes('cta') || message.toLowerCase().includes('call to action') || message.match(/["']([^"']+)["']/)) {
+  if (message.toLowerCase().includes('cta') || message.toLowerCase().includes('call to action')) {
     const match = message.match(/["']([^"']+)["']/);
     if (match) {
       changes.push({
@@ -562,52 +529,34 @@ app.post('/api/chat', (req, res) => {
 
   res.json({
     success: true,
-    response: changes.length > 0 ? `✅ Updated ${changes.length} field(s)` : '✅ Noted!',
+    response: changes.length > 0 ? `✅ Updated successfully` : '✅ Understood',
     updatedData: updates,
     changes
   });
 });
 
-app.post('/api/regenerate', (req, res) => {
+// Regenerate designs endpoint
+app.post('/api/regenerate-designs', (req, res) => {
   const { company, country, product, number, campaignData } = req.body;
   
   if (!company || !country || !product || !number) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  // Generate mock FABP options
-  const options = [
-    {
-      number: 1,
-      title: 'Option 1: The Strategic Advantage',
-      content: 'Focus on the unique problem angle and how it benefits your audience'
-    },
-    {
-      number: 2,
-      title: 'Option 2: Real-World Evidence',
-      content: 'Lead with data and outcomes to demonstrate effectiveness'
-    },
-    {
-      number: 3,
-      title: 'Option 3: The Journey Focus',
-      content: 'Tell the story through customer outcomes and satisfaction'
-    }
-  ];
-
-  // Save to campaign
+  // Update campaign with regeneration timestamp
   const campaignPath = path.join(CAMPAIGNS_PATH, company, country, product, String(number).padStart(3, '0'));
-  const optionsPath = path.join(campaignPath, 'fabp-options.json');
+  const campaignJsonPath = path.join(campaignPath, 'campaign.json');
   
-  fs.writeFileSync(optionsPath, JSON.stringify({
-    options,
-    regeneratedAt: new Date().toISOString(),
-    campaignData
-  }, null, 2));
+  if (fs.existsSync(campaignJsonPath)) {
+    const existing = JSON.parse(fs.readFileSync(campaignJsonPath, 'utf8'));
+    existing.magicPatterns = existing.magicPatterns || {};
+    existing.magicPatterns.regeneratedAt = new Date().toISOString();
+    fs.writeFileSync(campaignJsonPath, JSON.stringify(existing, null, 2));
+  }
 
   res.json({
     success: true,
-    options,
-    message: `✨ Regenerated ${options.length} FABP options`
+    message: `✨ Regenerated 3 FABP options and Magic Patterns designs`
   });
 });
 

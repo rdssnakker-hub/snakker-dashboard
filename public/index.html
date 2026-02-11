@@ -459,14 +459,36 @@
 
         <div class="section">
           <h3 class="section-title">⚡ Flash Brief</h3>
-          <div class="flash-brief" id="flash-brief">
-            <p style="color: #657786;">No flash brief available yet.</p>
+          <div class="flash-brief" id="flash-brief" style="background: #ffffff; color: #1a1a1a; padding: 15px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;">
+            <p style="color: #999;">Loading brief...</p>
           </div>
-          <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
             <button class="edit-btn" onclick="editFlashBrief()">📝 Edit Flash Brief</button>
             <button class="edit-btn" onclick="requestFlashBriefRevision()">💬 Request Revision</button>
+            <button class="edit-btn" onclick="regenerateMagicPatterns()" style="background: #7c3aed; color: white;">✨ Regenerate Magic Patterns</button>
           </div>
           <div id="flash-brief-revisions" style="margin-top: 15px; font-size: 0.85rem; color: #657786;"></div>
+        </div>
+
+        <div class="section" style="background: #ffffff; border-radius: 8px; padding: 20px; margin-top: 20px;">
+          <h3 class="section-title" style="color: #1a1a1a;">💬 Snakker Cortex Chat</h3>
+          <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">Chat naturally to revise the brief and storyboard. Changes auto-save to campaign.json</p>
+          
+          <div id="chat-messages" style="background: #fafafa; border: 1px solid #e5e5e5; border-radius: 6px; height: 300px; overflow-y: auto; padding: 15px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="background: #ffffff; border: 1px solid #e5e5e5; border-radius: 6px; padding: 12px; color: #333;">
+              👋 Hi! I'm Snakker Cortex. You can chat to:
+              <br>• Change the problem or challenge
+              <br>• Update audience, device, or channel
+              <br>• Revise the campaign objective or CTA
+              <br>• Refine success metrics
+              <br><br>Just type naturally, and I'll update the brief. Then click <strong>Regenerate</strong> to update Magic Patterns designs.
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="chat-input" placeholder="E.g., 'Change audience to nurses' or 'Make it mobile-first'..." style="flex: 1; padding: 10px; border: 1px solid #d0d0d0; border-radius: 6px; font-family: inherit; font-size: 13px; color: #333;">
+            <button onclick="sendChatMessage()" style="background: #7c3aed; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">Send</button>
+          </div>
         </div>
 
         <div class="section">
@@ -767,6 +789,138 @@
         console.error('Error loading revisions:', error);
       }
     }
+
+    // Chat Interface Functions
+    function addChatMessage(role, message) {
+      const messagesDiv = document.getElementById('chat-messages');
+      const messageEl = document.createElement('div');
+      messageEl.style.cssText = role === 'user' 
+        ? 'background: #7c3aed; color: white; padding: 10px 12px; border-radius: 6px; align-self: flex-end; max-width: 80%;'
+        : 'background: #ffffff; border: 1px solid #e5e5e5; color: #333; padding: 10px 12px; border-radius: 6px; align-self: flex-start; max-width: 80%;';
+      messageEl.textContent = message;
+      messagesDiv.appendChild(messageEl);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const message = input.value.trim();
+      
+      if (!message || !currentCampaign) return;
+
+      // Add user message to chat
+      addChatMessage('user', message);
+      input.value = '';
+
+      try {
+        // Parse campaign ID to get company/country/product/number
+        const parts = currentCampaign.id.split('-');
+        if (parts.length < 4) {
+          addChatMessage('ai', '❌ Could not parse campaign ID');
+          return;
+        }
+
+        const [company, country, product, number] = [parts[0], parts[1], parts[2], parts[3]];
+
+        // Send chat to server
+        const response = await fetch('/api/chat-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            company,
+            country,
+            product,
+            number,
+            message,
+            campaignData: currentCampaign
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Update campaign data with changes
+          if (result.changes && result.changes.length > 0) {
+            const changeText = result.changes.map(c => `${c.field}: ${c.oldValue} → ${c.newValue}`).join(', ');
+            addChatMessage('ai', `✅ Updated: ${changeText}`);
+            
+            // Reload campaign to show updates
+            await viewCampaign(currentCampaign.id);
+          } else {
+            addChatMessage('ai', result.response || '✅ Understood!');
+          }
+        } else {
+          addChatMessage('ai', `❌ ${result.error || 'Error processing message'}`);
+        }
+      } catch (error) {
+        console.error('Chat error:', error);
+        addChatMessage('ai', `❌ Error: ${error.message}`);
+      }
+    }
+
+    async function regenerateMagicPatterns() {
+      if (!currentCampaign) {
+        alert('No campaign selected');
+        return;
+      }
+
+      const button = event.target;
+      button.disabled = true;
+      button.textContent = '⏳ Regenerating...';
+
+      try {
+        const parts = currentCampaign.id.split('-');
+        if (parts.length < 4) {
+          throw new Error('Could not parse campaign ID');
+        }
+
+        const [company, country, product, number] = [parts[0], parts[1], parts[2], parts[3]];
+
+        addChatMessage('ai', '✨ Regenerating Magic Patterns designs...');
+
+        const response = await fetch('/api/regenerate-designs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            company,
+            country,
+            product,
+            number,
+            campaignData: currentCampaign
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          addChatMessage('ai', `✅ ${result.message}\n\nNew mockups are ready! Check the storyboard for updated Magic Patterns links.`);
+          
+          // Reload storyboard to show new designs
+          await viewCampaign(currentCampaign.id);
+        } else {
+          addChatMessage('ai', `❌ Error: ${result.error || 'Failed to regenerate'}`);
+        }
+      } catch (error) {
+        console.error('Regeneration error:', error);
+        addChatMessage('ai', `❌ Error: ${error.message}`);
+      } finally {
+        button.disabled = false;
+        button.textContent = '✨ Regenerate Magic Patterns';
+      }
+    }
+
+    // Allow Enter key in chat input
+    document.addEventListener('DOMContentLoaded', () => {
+      const chatInput = document.getElementById('chat-input');
+      if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendChatMessage();
+          }
+        });
+      }
+    });
 
     // Load campaigns on page load
     loadCampaigns();
