@@ -1,39 +1,44 @@
 <!DOCTYPE html>
-<html 
-          setTimeout(() => { addChatMessage("ai", "✅ Done! Chat will close in 3 seconds..."); }, 500);
-          setTimeout(() => { hideChatInterface(); }, 3500);lang="en">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Snakker Campaign Dashboard</title>
   <style>
-    /* COLOR PALETTE - WCAG Compliant */
+    /* ============================================
+       DESIGN SYSTEM & VARIABLES
+       ============================================ */
     :root {
-      /* Primary */
-      --purple-600: #7c3aed;
-      --purple-700: #6d28d9;
-      --purple-800: #5b21b6;
+      /* Primary Colors */
+      --primary: #7c3aed;
+      --primary-dark: #6d28d9;
+      --primary-light: #a78bfa;
       
-      /* Text Colors */
+      /* Status Colors (WCAG AA Compliant) */
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #3b82f6;
+      
+      /* Neutral Colors */
       --text-primary: #111827;
-      --text-secondary: #4b5563;
-      --text-tertiary: #6b7280;
-      --text-muted: #9ca3af;
-      
-      /* Backgrounds */
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
       --bg-primary: #ffffff;
       --bg-secondary: #f9fafb;
       --bg-tertiary: #f3f4f6;
+      --border: #e5e7eb;
+      --border-light: #f3f4f6;
       
-      /* Status Colors */
-      --status-success: #059669;
-      --status-warning: #d97706;
-      --status-error: #dc2626;
-      --status-info: #2563eb;
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
       
-      /* Borders */
-      --border-light: #e5e7eb;
-      --border-medium: #d1d5db;
+      /* Z-index */
+      --z-modal: 1000;
+      --z-dropdown: 500;
     }
 
     * {
@@ -42,805 +47,1558 @@
       box-sizing: border-box;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: #f5f5f7;
-      color: #1a1a1a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
       line-height: 1.6;
     }
 
-    .container {
-      max-width: 1400px;
+    /* ============================================
+       LAYOUT & STRUCTURE
+       ============================================ */
+    
+    .main-wrapper {
+      display: flex;
+      min-height: 100vh;
+      background: var(--bg-secondary);
+    }
+
+    .header {
+      background: var(--bg-primary);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 32px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-content {
+      max-width: 1600px;
       margin: 0 auto;
-      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
     }
 
-    header {
-      margin-bottom: 40px;
-      border-bottom: 1px solid #e5e5e5;
-      padding-bottom: 20px;
-      background: white;
-      padding: 20px 40px;
-      margin: -20px -20px 40px -20px;
+    .header-left {
+      flex: 1;
     }
 
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 10px;
-      color: #1a1a1a;
+    .header-title {
+      font-size: 1.875rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
     }
 
-    .subtitle {
-      color: #666;
-      font-size: 0.95rem;
+    .header-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .search-box {
+      position: relative;
+      width: 300px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 8px 12px 8px 36px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+      background: var(--bg-secondary);
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: var(--bg-primary);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    .search-box::before {
+      content: '🔍';
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .filter-toggle {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .filter-toggle:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--primary);
+    }
+
+    .filter-toggle:focus-visible {
+      outline: 3px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .container {
+      flex: 1;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 32px;
+      width: 100%;
+    }
+
+    /* ============================================
+       CAMPAIGNS LIST VIEW
+       ============================================ */
+
+    .campaigns-section {
+      display: none;
+    }
+
+    .campaigns-section.active {
+      display: block;
+    }
+
+    .filters-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .filter-chip {
+      padding: 8px 16px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .filter-chip:hover {
+      border-color: var(--primary);
+      background: var(--bg-secondary);
+    }
+
+    .filter-chip.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
     }
 
     .campaigns-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 20px;
       margin-bottom: 40px;
     }
 
     .campaign-card {
-      background: white;
-      border: 1px solid #e5e5e5;
+      background: var(--bg-primary);
+      border: 2px solid var(--border);
       border-radius: 12px;
       padding: 20px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .campaign-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--primary);
+      opacity: 0;
+      transition: opacity 0.3s;
     }
 
     .campaign-card:hover {
-      border-color: #7c3aed;
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+      border-color: var(--primary);
+      box-shadow: var(--shadow-lg);
       transform: translateY(-4px);
     }
 
-    .campaign-header {
-      margin-bottom: 15px;
+    .campaign-card:hover::before {
+      opacity: 1;
     }
 
-    .campaign-title {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #1a1a1a;
-      margin-bottom: 5px;
+    .campaign-card:focus-visible {
+      outline: 3px solid var(--primary);
+      outline-offset: 0;
     }
 
-    .campaign-meta {
-      color: #4b5563;
-      font-size: 0.85rem;
-      color: #4b5563;
-      margin-bottom: 10px;
+    .campaign-card-header {
+      margin-bottom: 16px;
     }
 
-    .campaign-status {
-      display: inline-block;
-      padding: 4px 12px;
-      background: #7c3aed;
-      color: #fff;
-      border-radius: 20px;
-      font-size: 0.8rem;
+    .campaign-card-title {
+      font-size: 1.125rem;
       font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
     }
 
-    .progress-bar {
-      background: #e5e5e5;
-      height: 6px;
-      border-radius: 3px;
-      overflow: hidden;
-      margin: 15px 0;
-    }
-
-    .progress-fill {
-      background: linear-gradient(90deg, #7c3aed, #a78bfa);
-      height: 100%;
-      transition: width 0.3s ease;
-    }
-
-    .stage-info {
-      font-size: 0.85rem;
-      color: #4b5563;
-      margin-top: 10px;
-    }
-
-    .detail-view {
-      display: none;
-    }
-
-    .detail-view.active {
-      display: block;
-    }
-
-    .back-btn {
-      background: #7c3aed;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 20px;
-      cursor: pointer;
-      margin-bottom: 20px;
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-
-    .back-btn:hover {
-      background: #6d28d9;
-    }
-
-    .detail-container {
-      background: white;
-      border: 1px solid #e5e5e5;
-      border-radius: 12px;
-      padding: 30px;
-    }
-
-    .detail-header {
-      margin-bottom: 30px;
-      border-bottom: 1px solid #e5e5e5;
-      padding-bottom: 20px;
-    }
-
-    .detail-title {
-      font-size: 1.8rem;
-      color: #1a1a1a;
-      font-weight: bold;
-      color: #fff;
-      margin-bottom: 10px;
-    }
-
-    .detail-meta {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-top: 15px;
-      font-size: 0.9rem;
-    }
-
-    .meta-item label {
-      color: #4b5563;
-      font-weight: 600;
-      display: block;
-      margin-bottom: 5px;
-    }
-
-    .meta-item value {
-      color: #fff;
-    }
-
-    .section {
-      margin-bottom: 40px;
-    }
-
-    .section-title {
-      font-size: 1.3rem;
-      font-weight: bold;
-      color: #fff;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #e5e5e5;
-    }
-
-    .workflow-stages {
+    .campaign-card-meta {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
       display: flex;
-      flex-direction: column;
-      gap: 15px;
+      gap: 8px;
+      margin-bottom: 12px;
     }
 
-    .stage-item {
-      background: #f5f5f7;
-      border: 1px solid #e5e5e5;
-      border-radius: 6px;
-      padding: 15px;
-      display: flex;
+    .campaign-card-status {
+      display: inline-flex;
       align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .campaign-card-status.completed {
+      background: #d1fae5;
+      color: var(--success);
+    }
+
+    .campaign-card-status.in-progress {
+      background: #fef3c7;
+      color: var(--warning);
+    }
+
+    .campaign-card-status.pending {
+      background: #f0f0f0;
+      color: var(--text-secondary);
+    }
+
+    .campaign-progress {
+      margin: 16px 0;
+    }
+
+    .progress-label {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      display: flex;
       justify-content: space-between;
     }
 
-    .stage-number {
-      background: #7c3aed;
-      color: #fff;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
+    .progress-bar {
+      height: 6px;
+      background: var(--bg-tertiary);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .campaign-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      font-size: 0.8125rem;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-light);
+    }
+
+    .info-item {
       display: flex;
+      flex-direction: column;
+    }
+
+    .info-label {
+      color: var(--text-tertiary);
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .info-value {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    /* ============================================
+       DETAIL VIEW
+       ============================================ */
+
+    .detail-section {
+      display: none;
+    }
+
+    .detail-section.active {
+      display: block;
+    }
+
+    .detail-header {
+      background: var(--bg-primary);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 32px;
+      border: 1px solid var(--border);
+    }
+
+    .detail-header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      gap: 20px;
+    }
+
+    .detail-header-left h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+
+    .detail-header-left p {
+      color: var(--text-secondary);
+      font-size: 0.9375rem;
+    }
+
+    .detail-status-badge {
+      display: inline-flex;
       align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      margin-right: 15px;
-    }
-
-    .stage-details {
-      flex-grow: 1;
-    }
-
-    .stage-name {
+      gap: 8px;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border-radius: 8px;
       font-weight: 600;
-      color: #1a1a1a;
-      margin-bottom: 3px;
+      font-size: 0.875rem;
     }
 
-    .stage-meta {
-      font-size: 0.8rem;
-      color: #4b5563;
+    .status-icon {
+      font-size: 1rem;
     }
 
-    .stage-status-badge {
-      padding: 6px 12px;
-      border-radius: 20px;
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .detail-item-label {
       font-size: 0.75rem;
       font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
     }
 
-    .status-completed {
-      background: #22c55e;
-      color: #fff;
+    .detail-item-value {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--text-primary);
     }
 
-    .status-in-progress {
-      background: #7c3aed;
-      color: #fff;
-    }
-
-    .status-pending {
-      background: #d97706;
-      color: #ffffff;
-    }
-
-    .flash-brief, .storyboard-section {
-      background: #f5f5f7;
-      border: 1px solid #e5e5e5;
-      border-radius: 6px;
-      padding: 20px;
-      margin-bottom: 20px;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-
-    .flash-brief pre, .storyboard-section pre {
-      background: #f3f4f6;
-      color: #1f2937;
-      padding: 15px;
-      border-radius: 8px;
-      overflow-x: auto;
-      font-size: 0.85rem;
-      line-height: 1.5;
-      border-left: 4px solid #7c3aed;
-      border: 1px solid #d1d5db;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-
-    .edit-btn {
-      background: #7c3aed;
-      color: #fff;
-      border: none;
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       padding: 8px 16px;
-      border-radius: 6px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 0.85rem;
-      margin-top: 10px;
+      font-weight: 500;
       transition: all 0.2s;
+      margin-bottom: 24px;
     }
 
-    .edit-btn:hover {
-      background: #6d28d9;
-      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-      transform: translateY(-1px);
+    .back-button:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--primary);
     }
 
-    .edit-btn:focus-visible {
-      outline: 3px solid #7c3aed;
+    .back-button:focus-visible {
+      outline: 3px solid var(--primary);
       outline-offset: 2px;
     }
 
-    .edit-btn:hover {
-      background: #1a91da;
+    /* ============================================
+       TABS & SECTIONS
+       ============================================ */
+
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 32px;
+      background: var(--bg-primary);
+      border-radius: 8px 8px 0 0;
+      padding: 0 32px;
     }
 
-    .edit-modal {
+    .tab {
+      padding: 16px 24px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .tab:hover {
+      color: var(--text-primary);
+    }
+
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab:focus-visible {
+      outline: 3px solid var(--primary);
+      outline-offset: -2px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ============================================
+       WORKFLOW VISUALIZATION
+       ============================================ */
+
+    .workflow-container {
+      background: var(--bg-primary);
+      border-radius: 12px;
+      padding: 32px;
+      border: 1px solid var(--border);
+    }
+
+    .workflow-timeline {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      position: relative;
+    }
+
+    .workflow-timeline::before {
+      content: '';
+      position: absolute;
+      top: 40px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: -1;
+    }
+
+    @media (max-width: 768px) {
+      .workflow-timeline::before {
+        top: auto;
+        left: 40px;
+        right: auto;
+        width: 2px;
+        height: 100%;
+      }
+    }
+
+    .workflow-stage {
+      position: relative;
+    }
+
+    .stage-indicator {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--bg-secondary);
+      border: 3px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+      margin: 0 auto 16px;
+      transition: all 0.3s;
+    }
+
+    .workflow-stage.completed .stage-indicator {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+
+    .workflow-stage.in-progress .stage-indicator {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      box-shadow: 0 0 0 8px rgba(124, 58, 237, 0.1);
+    }
+
+    .workflow-stage.pending .stage-indicator {
+      background: var(--bg-secondary);
+      border-color: var(--border);
+      color: var(--text-tertiary);
+    }
+
+    .stage-label {
+      text-align: center;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      font-size: 0.875rem;
+    }
+
+    .stage-dates {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .stage-owner {
+      text-align: center;
+      font-size: 0.75rem;
+      background: var(--bg-tertiary);
+      padding: 6px 8px;
+      border-radius: 4px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    /* ============================================
+       CONTENT SECTIONS
+       ============================================ */
+
+    .content-card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .content-text {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 400px;
+      overflow-y: auto;
+      margin: 16px 0;
+    }
+
+    .content-placeholder {
+      color: var(--text-tertiary);
+      font-style: italic;
+      padding: 20px;
+      text-align: center;
+    }
+
+    /* ============================================
+       BUTTONS & ACTIONS
+       ============================================ */
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn:focus-visible {
+      outline: 3px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+    }
+
+    .btn-primary:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--primary);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 0.8125rem;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    /* ============================================
+       MODALS
+       ============================================ */
+
+    .modal {
       display: none;
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 1000;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: var(--z-modal);
       align-items: center;
       justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.2s ease;
     }
 
-    .edit-modal.active {
+    .modal.active {
       display: flex;
     }
 
-    .edit-modal-content {
-      background: #ffffff;
-      border-radius: 8px;
-      padding: 30px;
-      width: 90%;
-      max-width: 800px;
-      max-height: 80vh;
-      overflow-y: auto;
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
     }
 
-    .edit-modal-header {
-      font-size: 1.3rem;
-      font-weight: bold;
-      color: #fff;
-      margin-bottom: 20px;
-    }
-
-    .edit-modal textarea {
-      width: 100%;
-      height: 400px;
-      background: #f5f5f7;
-      border: 1px solid #e5e5e5;
-      border-radius: 4px;
-      color: #1a1a1a;
-      padding: 15px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.9rem;
-      margin-bottom: 20px;
-    }
-
-    .edit-modal-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-    }
-
-    .modal-btn {
-      padding: 10px 20px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .modal-btn-save {
-      background: #17bf63;
-      color: #fff;
-    }
-
-    .modal-btn-cancel {
-      background: #657786;
-      color: #fff;
-    }
-
-    .audit-log {
-      background: #f5f5f7;
-      border: 1px solid #e5e5e5;
-      border-radius: 6px;
-      padding: 15px;
-    }
-
-    .audit-entry {
-      padding: 12px 0;
-      border-bottom: 1px solid #e5e5e5;
-      font-size: 0.9rem;
-    }
-
-    .audit-entry:last-child {
-      border-bottom: none;
-    }
-
-    .audit-timestamp {
-      color: #4b5563;
-      font-size: 0.8rem;
-    }
-
-    .audit-action {
-      color: #1da1f2;
-      font-weight: 600;
-      margin: 5px 0;
-    }
-
-    .audit-actor {
-      color: #4b5563;
-      font-size: 0.85rem;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 40px;
-      color: #4b5563;
-    }
-
-    .error {
-      background: #8b3a3a;
-      border: 1px solid #d32f2f;
-      color: #ffcccc;
-      padding: 15px;
-      border-radius: 6px;
-      margin-bottom: 20px;
-    }
-  
-    /* INPUT STYLING - Improved accessibility */
-    input[type="text"],
-    textarea {
-      border: 1.5px solid #d1d5db;
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-size: 0.9375rem;
-      font-family: inherit;
-      transition: all 0.2s;
-      color: #1a1a1a;
-    }
-
-    input[type="text"]::placeholder,
-    textarea::placeholder {
-      color: #9ca3af;
-    }
-
-    input[type="text"]:focus,
-    textarea:focus {
-      outline: none;
-      border-color: #7c3aed;
-      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
-      background: #fafafa;
-    }
-
-    input[type="text"]:disabled,
-    textarea:disabled {
-      background: #f3f4f6;
-      color: #9ca3af;
-      cursor: not-allowed;
-    }
-
-    /* Interactive elements - Focus states */
-    .campaign-card:focus-visible {
-      outline: 3px solid #7c3aed;
-      outline-offset: 2px;
-    }
-
-    button:focus-visible {
-      outline: 3px solid #7c3aed;
-      outline-offset: 2px;
-    }
-
-    /* Stage items - Hover state */
-    .stage-item {
-      transition: all 0.2s;
-    }
-
-    .stage-item:hover {
-      background: #f9fafb;
-    }
-
-  
-    /* BUTTONS - Better visual hierarchy */
-    button {
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    button:active {
-      transform: scale(0.98);
-    }
-
-    /* INPUTS - Accessible styling */
-    input[type="text"],
-    textarea {
+    .modal-content {
       background: var(--bg-primary);
-      border: 1.5px solid var(--border-medium);
-      color: var(--text-primary);
-      transition: all 0.2s;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 700px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-xl);
+      animation: slideUp 0.3s ease;
     }
 
-    input[type="text"]:focus,
-    textarea:focus {
-      border-color: var(--purple-600);
-      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
-      background: var(--bg-secondary);
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
-    /* LINKS - Visible underlines */
-    a {
-      color: var(--purple-600);
-      text-decoration: underline;
-      text-decoration-thickness: 1.5px;
-      text-underline-offset: 3px;
+    .modal-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    a:visited {
-      color: var(--purple-700);
-    }
-
-    /* FOCUS RINGS - Keyboard accessibility */
-    button:focus-visible,
-    a:focus-visible,
-    [tabindex]:focus-visible {
-      outline: 3px solid var(--purple-600);
-      outline-offset: 2px;
-    }
-
-    /* STAGE ITEMS - Better hover states */
-    .stage-item {
-      border-radius: 8px;
-      padding: 12px;
-      transition: all 0.2s;
-    }
-
-    .stage-item:hover {
-      background: var(--bg-secondary);
-      border-left: 4px solid var(--purple-600);
-      padding-left: 8px;
-    }
-
-    /* CAMPAIGN CARDS - Enhanced interactions */
-    .campaign-card {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 2px solid var(--border-light);
-    }
-
-    .campaign-card:hover {
-      border-color: var(--purple-600);
-      box-shadow: 0 12px 24px rgba(124, 58, 237, 0.15);
-      transform: translateY(-4px);
-    }
-
-    .campaign-card:focus-visible {
-      outline: 3px solid var(--purple-600);
-      outline-offset: 0;
-    }
-
-    /* TYPOGRAPHY SYSTEM - Clear hierarchy */
-    h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      line-height: 1.2;
-      letter-spacing: -0.02em;
-      color: var(--text-primary);
-      margin-bottom: 8px;
-    }
-
-    h2 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      line-height: 1.3;
-      color: var(--text-primary);
-      margin-bottom: 16px;
-    }
-
-    h3 {
-      font-size: 1.125rem;
-      font-weight: 600;
-      line-height: 1.4;
-      color: var(--text-primary);
-    }
-
-    .section-title {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      text-transform: none;
-      letter-spacing: 0;
-      margin-bottom: 16px;
-    }
-
-    p, body {
-      font-size: 0.9375rem;
-      line-height: 1.6;
-      color: var(--text-primary);
-    }
-
-    small, .small-text {
-      font-size: 0.8125rem;
-      color: var(--text-secondary);
-      line-height: 1.5;
-    }
-
-    label {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    /* Clear visual hierarchy */
-    .campaign-title {
+    .modal-title {
       font-size: 1.25rem;
       font-weight: 600;
       color: var(--text-primary);
     }
 
-    .campaign-meta {
-      font-size: 0.875rem;
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
       color: var(--text-secondary);
-      font-weight: 500;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: all 0.2s;
     }
 
-    .stage-name {
-      font-size: 0.9375rem;
-      font-weight: 600;
+    .modal-close:hover {
+      background: var(--bg-secondary);
       color: var(--text-primary);
     }
 
-    /* DATE MANAGEMENT */
-    .stage-item-date {
+    .modal-close:focus-visible {
+      outline: 3px solid var(--primary);
+      outline-offset: -2px;
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .modal-footer {
+      padding: 24px;
+      border-top: 1px solid var(--border);
       display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 8px;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    /* ============================================
+       FORMS
+       ============================================ */
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      font-size: 0.875rem;
+    }
+
+    .form-hint {
+      display: block;
       font-size: 0.8125rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
     }
 
-    .date-status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
+    textarea,
+    input[type="text"],
+    input[type="date"],
+    input[type="email"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      color: var(--text-primary);
+      transition: all 0.2s;
+      background: var(--bg-primary);
     }
 
-    .date-status-dot.on-track {
-      background: #22c55e;
+    textarea::placeholder,
+    input::placeholder {
+      color: var(--text-tertiary);
     }
 
-    .date-status-dot.at-risk {
-      background: #f59e0b;
-    }
-
-    .date-status-dot.overdue {
-      background: #ef4444;
-    }
-
-    .stage-date-input {
-      padding: 4px 8px;
-      border: 1px solid var(--border-light);
-      border-radius: 4px;
-      font-size: 0.8125rem;
-      cursor: pointer;
-    }
-
-    .stage-date-input:focus {
+    textarea:focus,
+    input:focus {
       outline: none;
-      border-color: var(--purple-600);
-      box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+      background: var(--bg-secondary);
     }
-</style>
+
+    textarea:disabled,
+    input:disabled {
+      background: var(--bg-tertiary);
+      color: var(--text-tertiary);
+      cursor: not-allowed;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 200px;
+      font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+    }
+
+    /* ============================================
+       CHAT INTERFACE
+       ============================================ */
+
+    .chat-container {
+      background: var(--bg-primary);
+      border-radius: 12px;
+      padding: 24px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 8px;
+    }
+
+    .chat-message {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      max-width: 85%;
+    }
+
+    .chat-message.ai {
+      background: var(--bg-secondary);
+      border-left: 3px solid var(--primary);
+      align-self: flex-start;
+    }
+
+    .chat-message.user {
+      background: var(--primary);
+      color: white;
+      align-self: flex-end;
+      border-left: none;
+    }
+
+    .chat-input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chat-input-group input {
+      flex: 1;
+    }
+
+    /* ============================================
+       AUDIT LOG
+       ============================================ */
+
+    .audit-log {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .audit-entry {
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      border-left: 3px solid var(--primary);
+      font-size: 0.8875rem;
+    }
+
+    .audit-timestamp {
+      color: var(--text-tertiary);
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .audit-action {
+      color: var(--text-primary);
+      font-weight: 600;
+      margin: 6px 0;
+    }
+
+    .audit-details {
+      color: var(--text-secondary);
+      font-size: 0.8125rem;
+    }
+
+    /* ============================================
+       RESPONSIVE DESIGN
+       ============================================ */
+
+    @media (max-width: 1200px) {
+      .container {
+        padding: 24px;
+      }
+
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .header-actions {
+        width: 100%;
+        flex-direction: column;
+      }
+
+      .search-box {
+        width: 100%;
+      }
+
+      .campaigns-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      }
+
+      .detail-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .workflow-timeline {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .workflow-timeline::before {
+        display: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 16px;
+      }
+
+      .header-title {
+        font-size: 1.5rem;
+      }
+
+      .container {
+        padding: 16px;
+      }
+
+      .campaigns-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-header {
+        padding: 20px;
+      }
+
+      .detail-header-top {
+        flex-direction: column;
+      }
+
+      .detail-header-left h1 {
+        font-size: 1.5rem;
+      }
+
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tabs {
+        padding: 0 16px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .tab {
+        padding: 12px 16px;
+        font-size: 0.875rem;
+      }
+
+      .workflow-timeline {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-content {
+        max-width: 100%;
+        border-radius: 12px 12px 0 0;
+      }
+
+      .modal-body {
+        padding: 16px;
+      }
+
+      textarea {
+        min-height: 150px;
+      }
+
+      .chat-container {
+        height: auto;
+        min-height: 400px;
+      }
+
+      .campaign-info {
+        grid-template-columns: 1fr;
+      }
+
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .card-actions {
+        width: 100%;
+      }
+
+      .card-actions .btn {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header {
+        padding: 12px;
+      }
+
+      .header-title {
+        font-size: 1.25rem;
+      }
+
+      .header-subtitle {
+        font-size: 0.75rem;
+      }
+
+      .filter-toggle {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+      }
+
+      .container {
+        padding: 12px;
+      }
+
+      .detail-header {
+        padding: 16px;
+      }
+
+      .campaign-card {
+        padding: 16px;
+      }
+
+      .tabs {
+        padding: 0 12px;
+        font-size: 0.8rem;
+      }
+
+      .btn {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+      }
+
+      .modal-header,
+      .modal-body,
+      .modal-footer {
+        padding: 16px;
+      }
+
+      .modal-title {
+        font-size: 1.125rem;
+      }
+    }
+
+    /* ============================================
+       UTILITY CLASSES
+       ============================================ */
+
+    .hidden {
+      display: none !important;
+    }
+
+    .invisible {
+      visibility: hidden;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .text-secondary {
+      color: var(--text-secondary);
+    }
+
+    .text-tertiary {
+      color: var(--text-tertiary);
+    }
+
+    .mt-0 { margin-top: 0; }
+    .mt-4 { margin-top: 16px; }
+    .mb-4 { margin-bottom: 16px; }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ============================================
+       ACCESSIBILITY
+       ============================================ */
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    /* Skip to main content link */
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: var(--primary);
+      color: white;
+      padding: 8px;
+      text-decoration: none;
+      z-index: 100;
+      border-radius: 0 0 4px 0;
+    }
+
+    .skip-link:focus {
+      top: 0;
+    }
+
+    /* Focus visible indicator for keyboard users */
+    *:focus-visible {
+      outline: 3px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Error states */
+    .error-message {
+      background: #fee;
+      border: 1px solid #fcc;
+      color: var(--error);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      margin-bottom: 16px;
+    }
+
+    /* Success states */
+    .success-message {
+      background: #ecfdf5;
+      border: 1px solid #d1fae5;
+      color: var(--success);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      margin-bottom: 16px;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>📊 Snakker Campaign Dashboard</h1>
-      <p class="subtitle">Real-time tracking for all campaigns through the Cortex automation pipeline</p>
-    </header>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
 
-    <div id="campaigns-view">
-      <div id="campaigns-container" role="list" aria-label="Available campaigns" class="campaigns-grid">
-        <div class="loading">Loading campaigns...</div>
+  <div class="main-wrapper">
+    <!-- HEADER -->
+    <div style="width: 100%;">
+      <div class="header">
+        <div class="header-content">
+          <div class="header-left">
+            <h1 class="header-title">📊 Snakker Dashboard</h1>
+            <p class="header-subtitle">Cortex campaign management & workflow automation</p>
+          </div>
+          <div class="header-actions">
+            <div class="search-box">
+              <input
+                type="text"
+                id="search-input"
+                placeholder="Search campaigns..."
+                aria-label="Search campaigns by name or company"
+              />
+            </div>
+            <button class="filter-toggle" id="filter-toggle" aria-label="Toggle filters">
+              🔽 Filters
+            </button>
+          </div>
+        </div>
       </div>
+
+      <!-- MAIN CONTENT -->
+      <main id="main-content" class="container">
+        <!-- CAMPAIGNS LIST VIEW -->
+        <section id="campaigns-view" class="campaigns-section active">
+          <div id="filters-container" class="hidden">
+            <div class="filters-bar" id="filters-bar">
+              <button class="filter-chip active" data-filter="all">All Campaigns</button>
+              <button class="filter-chip" data-filter="in-progress">In Progress</button>
+              <button class="filter-chip" data-filter="completed">Completed</button>
+              <button class="filter-chip" data-filter="pending">Pending</button>
+            </div>
+          </div>
+
+          <div id="campaigns-container" role="list" aria-label="Campaigns list" class="campaigns-grid">
+            <div class="text-center mt-4">
+              <div class="spinner"></div>
+              <p class="text-secondary mt-4">Loading campaigns...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- CAMPAIGN DETAIL VIEW -->
+        <section id="detail-view" class="detail-section">
+          <button class="back-button" onclick="goBackToCampaigns()" aria-label="Back to campaigns list">
+            ← Back
+          </button>
+
+          <!-- DETAIL HEADER -->
+          <div class="detail-header">
+            <div class="detail-header-top">
+              <div class="detail-header-left">
+                <h1 id="detail-title"></h1>
+                <p id="detail-subtitle"></p>
+              </div>
+              <div class="detail-status-badge">
+                <span class="status-icon">✓</span>
+                <span id="detail-progress"></span>
+              </div>
+            </div>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-item-label">Company</span>
+                <span class="detail-item-value" id="detail-company"></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item-label">Product</span>
+                <span class="detail-item-value" id="detail-product"></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item-label">Country</span>
+                <span class="detail-item-value" id="detail-country"></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item-label">Contact</span>
+                <span class="detail-item-value" id="detail-contact"></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item-label">Email</span>
+                <span class="detail-item-value" id="detail-email"></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item-label">Created</span>
+                <span class="detail-item-value" id="detail-created"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TABS -->
+          <div class="tabs" role="tablist">
+            <button class="tab active" role="tab" aria-selected="true" data-tab="workflow">
+              ⚙️ Workflow
+            </button>
+            <button class="tab" role="tab" aria-selected="false" data-tab="brief">
+              ⚡ Flash Brief
+            </button>
+            <button class="tab" role="tab" aria-selected="false" data-tab="storyboard">
+              📋 Storyboard
+            </button>
+            <button class="tab" role="tab" aria-selected="false" data-tab="chat">
+              💬 Chat
+            </button>
+            <button class="tab" role="tab" aria-selected="false" data-tab="audit">
+              📊 Audit Log
+            </button>
+          </div>
+
+          <!-- TAB: WORKFLOW -->
+          <div id="workflow-tab" class="tab-content active">
+            <div class="workflow-container">
+              <h2 class="card-title" style="margin-bottom: 24px;">Campaign Pipeline</h2>
+              <div class="workflow-timeline" id="workflow-timeline" role="list">
+                <!-- Populated by JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: FLASH BRIEF -->
+          <div id="brief-tab" class="tab-content">
+            <div class="content-card">
+              <div class="card-header">
+                <h2 class="card-title">Flash Brief</h2>
+                <div class="card-actions">
+                  <button class="btn btn-secondary btn-small" onclick="editFlashBrief()">
+                    ✏️ Edit
+                  </button>
+                  <button class="btn btn-secondary btn-small" onclick="openRevisionModal('flash-brief')">
+                    🔄 Request Revision
+                  </button>
+                  <button class="btn btn-primary btn-small" onclick="regenerateMagicPatterns()">
+                    ✨ Regenerate
+                  </button>
+                </div>
+              </div>
+              <div class="content-text" id="flash-brief">
+                <span class="content-placeholder">Loading flash brief...</span>
+              </div>
+              <div id="flash-brief-revisions"></div>
+            </div>
+
+            <div class="content-card">
+              <h2 class="card-title mb-4">Magic Patterns Designs</h2>
+              <div id="magic-patterns-links" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                <span class="content-placeholder">Loading designs...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: STORYBOARD -->
+          <div id="storyboard-tab" class="tab-content">
+            <div class="content-card">
+              <div class="card-header">
+                <h2 class="card-title">Storyboard</h2>
+                <div class="card-actions">
+                  <button class="btn btn-secondary btn-small" onclick="editStoryboard()">
+                    ✏️ Edit
+                  </button>
+                  <button class="btn btn-secondary btn-small" onclick="openRevisionModal('storyboard')">
+                    🔄 Request Revision
+                  </button>
+                </div>
+              </div>
+              <div class="content-text" id="storyboard">
+                <span class="content-placeholder">No storyboard available yet.</span>
+              </div>
+              <div id="storyboard-revisions"></div>
+            </div>
+          </div>
+
+          <!-- TAB: CHAT -->
+          <div id="chat-tab" class="tab-content">
+            <div class="content-card">
+              <h2 class="card-title mb-4">💬 Cortex Chat Interface</h2>
+              <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9375rem;">
+                Chat naturally to revise briefs and storyboards. Changes auto-save to campaign data.
+              </p>
+              <div class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                  <div class="chat-message ai">
+                    👋 Hi! I'm Snakker Cortex. You can chat to update campaign details, change the target audience, device preferences, channels, and more. Just type naturally!
+                  </div>
+                </div>
+                <div class="chat-input-group">
+                  <input
+                    type="text"
+                    id="chat-input"
+                    placeholder="E.g., 'Change audience to nurses' or 'Make it mobile-first'..."
+                    aria-label="Chat message input"
+                  />
+                  <button class="btn btn-primary" onclick="sendChatMessage()">
+                    Send
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: AUDIT LOG -->
+          <div id="audit-tab" class="tab-content">
+            <div class="content-card">
+              <h2 class="card-title mb-4">Activity History</h2>
+              <div class="audit-log" id="audit-log">
+                <div class="content-placeholder">No activity yet.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
+  </div>
 
-    <div id="detail-view" class="detail-view" role="main" aria-label="Campaign details">
-      <button class="back-btn" onclick="goBack()">← Back to Campaigns</button>
-      <div class="detail-container">
-        <div class="detail-header">
-          <h2 class="detail-title" id="detail-title"></h2>
-          <div class="detail-meta">
-            <div class="meta-item">
-              <label>Company</label>
-              <value id="detail-company"></value>
-            </div>
-            <div class="meta-item">
-              <label>Product</label>
-              <value id="detail-product"></value>
-            </div>
-            <div class="meta-item">
-              <label>Country</label>
-              <value id="detail-country"></value>
-            </div>
-            <div class="meta-item">
-              <label>Contact</label>
-              <value id="detail-contact"></value>
-            </div>
-            <div class="meta-item">
-              <label>Timeline</label>
-              <value id="detail-timeline"></value>
-            </div>
-            <div class="meta-item">
-              <label>Created</label>
-              <value id="detail-created"></value>
-            </div>
-          </div>
-        </div>
-
-        <div class="section">
-          <h3 class="section-title">⚙️ Workflow Pipeline</h3>
-          <div class="workflow-stages" id="workflow-stages" role="list" aria-label="Campaign workflow pipeline"></div>
-        </div>
-
-        <div class="section">
-          <h3 class="section-title">⚡ Flash Brief</h3>
-          <div class="flash-brief" id="flash-brief" role="region" aria-label="Campaign flash brief" style="background: #ffffff; color: #1a1a1a; padding: 15px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;">
-            <p style="color: #4b5563;">Loading brief...</p>
-          </div>
-          <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
-            <button class="edit-btn" onclick="editFlashBrief()">📝 Edit Flash Brief</button>
-            <button class="edit-btn" onclick="focusChatForUpdate('flash-brief')">💬 Update via Chat</button>
-            <button class="edit-btn" onclick="regenerateMagicPatterns()" style="background: #7c3aed; color: white;">✨ Regenerate Magic Patterns</button>
-          </div>
-          <div id="flash-brief-revisions" style="margin-top: 15px; font-size: 0.85rem; color: #4b5563;"></div>
-        </div>
-
-        <div class="section" style="background: #ffffff; border-radius: 8px; padding: 20px; margin-top: 20px;">
-          <h3 class="section-title" style="color: #1a1a1a;">💬 Snakker Cortex Chat</h3>
-          <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">Chat naturally to revise the brief and storyboard. Changes auto-save to campaign.json</p>
-          
-          <div id="chat-messages" style="background: #fafafa; border: 1px solid #e5e5e5; border-radius: 6px; height: 300px; overflow-y: auto; padding: 15px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px;">
-            <div style="background: #ffffff; border: 1px solid #e5e5e5; border-radius: 6px; padding: 12px; color: #333;">
-              👋 Hi! I\'m Snakker Cortex. You can chat to:
-              <br>• Change the problem or challenge
-              <br>• Update audience, device, or channel
-              <br>• Revise the campaign objective or CTA
-              <br>• Refine success metrics
-              <br><br>Just type naturally, and I'll update the brief. Then click <strong>Regenerate</strong> to update Magic Patterns designs.
-            </div>
-          </div>
-          
-          <div style="display: flex; gap: 10px;">
-            <input type="text" id="chat-input" placeholder="E.g., 'Change audience to nurses' or 'Make it mobile-first'..." style="flex: 1; padding: 10px; border: 1px solid #d0d0d0; border-radius: 6px; font-family: inherit; font-size: 13px; color: #333;">
-            <button onclick="sendChatMessage()" style="background: #7c3aed; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">Send</button>
-          </div>
-        </div>
-
-        <div class="section">
-          <h3 class="section-title">📋 Storyboard</h3>
-          <div class="storyboard-section" id="storyboard" role="region" aria-label="Campaign storyboard">
-            <p style="color: #4b5563;">No storyboard available yet.</p>
-          </div>
-          <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button class="edit-btn" onclick="editStoryboard()">✏️ Edit Storyboard</button>
-            <button class="edit-btn" onclick="focusChatForUpdate('storyboard')">💬 Update via Chat</button>
-          </div>
-          <div id="storyboard-revisions" style="margin-top: 15px; font-size: 0.85rem; color: #4b5563;"></div>
-        </div>
-
-        <div class="section">
-          <h3 class="section-title">✨ Magic Patterns Designs</h3>
-          <div id="magic-patterns-links" role="region" aria-label="Magic Patterns design links" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
-            <p style="grid-column: 1/-1; color: #4b5563;">Loading designs...</p>
-          </div>
-        </div>
-
-        </div>
-
-        <div class="section">
-          <h3 class="section-title">📋 Audit Log</h3>
-          <div class="audit-log" id="audit-log"></div>
-        </div>
+  <!-- EDIT MODAL -->
+  <div id="edit-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="edit-modal-title"></h2>
+        <button class="modal-close" onclick="closeModal()" aria-label="Close modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <textarea id="edit-modal-textarea" placeholder="Enter content here..." aria-label="Edit content"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-success" onclick="saveEdit()">Save Changes</button>
       </div>
     </div>
   </div>
 
-  <div id="edit-modal" class="edit-modal">
-    <div class="edit-modal-content">
-      <div class="edit-modal-header" id="edit-modal-title"></div>
-      <textarea id="edit-modal-textarea" placeholder="Enter content here..."></textarea>
-      <div class="edit-modal-actions">
-        <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancel</button>
-        <button class="modal-btn modal-btn-save" onclick="saveEdit()">Save Changes</button>
+  <!-- REVISION REQUEST MODAL -->
+  <div id="revision-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">🔄 Request Revision</h2>
+        <button class="modal-close" onclick="closeRevisionModal()" aria-label="Close modal">✕</button>
       </div>
-    </div>
-  </div>
-
-  <div id="revision-modal" class="edit-modal">
-    <div class="edit-modal-content">
-      <div class="edit-modal-header">💬 Request Revision</div>
-      <textarea id="revision-prompt" placeholder="Describe what you\'d like to change (e.g., 'Make the hook more punchy' or 'Add more clinical evidence')..." style="height: 150px;"></textarea>
-      <div class="edit-modal-actions">
-        <button class="modal-btn modal-btn-cancel" onclick="closeRevisionModal()">Cancel</button>
-        <button class="modal-btn modal-btn-save" onclick="submitRevisionRequest()">Request Revision</button>
+      <div class="modal-body">
+        <p style="color: var(--text-secondary); margin-bottom: 16px;">
+          Describe what you'd like to change or improve.
+        </p>
+        <textarea
+          id="revision-prompt"
+          placeholder="E.g., 'Make the hook more punchy' or 'Add more clinical evidence'..."
+          aria-label="Revision prompt"
+        ></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeRevisionModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitRevisionRequest()">Request Revision</button>
       </div>
     </div>
   </div>
 
   <script>
+    // ============================================
+    // STATE MANAGEMENT
+    // ============================================
     let campaigns = [];
     let currentCampaign = null;
     let editingField = null;
     let revisionField = null;
+    let selectedFilter = 'all';
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeEventListeners();
+      loadCampaigns();
+    });
+
+    function initializeEventListeners() {
+      // Tab switching
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', switchTab);
+      });
+
+      // Filters
+      document.getElementById('filter-toggle')?.addEventListener('click', toggleFilters);
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.addEventListener('click', applyFilter);
+      });
+
+      // Search
+      document.getElementById('search-input')?.addEventListener('input', debounce(searchCampaigns, 300));
+
+      // Chat
+      document.getElementById('chat-input')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendChatMessage();
+      });
+
+      // Prevent modal close on content click
+      document.querySelectorAll('.modal-content').forEach(modal => {
+        modal.addEventListener('click', (e) => e.stopPropagation());
+      });
+    }
+
+    // ============================================
+    // CAMPAIGNS LIST
+    // ============================================
 
     async function loadCampaigns() {
       try {
@@ -849,534 +1607,517 @@
         renderCampaigns();
       } catch (error) {
         console.error('Error loading campaigns:', error);
-        document.getElementById('campaigns-container').innerHTML = `
-          <div class="error">Failed to load campaigns. Make sure the backend server is running.</div>
-        `;
+        showError('Failed to load campaigns. Please refresh the page.');
       }
     }
 
     function renderCampaigns() {
       const container = document.getElementById('campaigns-container');
-      if (campaigns.length === 0) {
-        container.innerHTML = '<div class="loading">No campaigns found.</div>';
+      const filtered = filterCampaigns();
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="content-placeholder">No campaigns found.</div>';
         return;
       }
 
-      container.innerHTML = campaigns.map(c => `
-        <div class="campaign-card" onclick="viewCampaign('${c.id}')">
-          <div class="campaign-header">
-            <div class="campaign-title">${c.product}</div>
-            <div class="campaign-meta">${c.company} • ${c.country}</div>
-            <span class="campaign-status">${c.currentStage}</span>
+      container.innerHTML = filtered.map(c => `
+        <div class="campaign-card" role="listitem" onclick="viewCampaign('${c.id}')" tabindex="0" onkeypress="if(event.key==='Enter') viewCampaign('${c.id}')">
+          <div class="campaign-card-header">
+            <h3 class="campaign-card-title">${c.product}</h3>
+            <div class="campaign-card-meta">
+              <span>${c.company}</span>
+              <span>•</span>
+              <span>${c.country}</span>
+            </div>
+            <span class="campaign-card-status ${c.status}">${c.currentStage}</span>
           </div>
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: ${c.progress}%"></div>
+
+          <div class="campaign-progress">
+            <div class="progress-label">
+              <span>Progress</span>
+              <strong>${c.progress}%</strong>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${c.progress}%"></div>
+            </div>
           </div>
-          <div class="stage-info">
-            Progress: ${c.progress}% • Contact: ${c.contact}
+
+          <div class="campaign-info">
+            <div class="info-item">
+              <span class="info-label">Contact</span>
+              <span class="info-value">${c.contact}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Created</span>
+              <span class="info-value">${new Date(c.created).toLocaleDateString()}</span>
+            </div>
           </div>
         </div>
       `).join('');
     }
+
+    function filterCampaigns() {
+      if (selectedFilter === 'all') return campaigns;
+      return campaigns.filter(c => c.status === selectedFilter);
+    }
+
+    function searchCampaigns(query) {
+      const searchTerm = query.target.value.toLowerCase();
+      const filtered = campaigns.filter(c =>
+        c.product.toLowerCase().includes(searchTerm) ||
+        c.company.toLowerCase().includes(searchTerm) ||
+        c.contact.toLowerCase().includes(searchTerm)
+      );
+
+      const container = document.getElementById('campaigns-container');
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="content-placeholder">No matching campaigns found.</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(c => `
+        <div class="campaign-card" role="listitem" onclick="viewCampaign('${c.id}')">
+          <div class="campaign-card-header">
+            <h3 class="campaign-card-title">${c.product}</h3>
+            <div class="campaign-card-meta">
+              <span>${c.company}</span> • <span>${c.country}</span>
+            </div>
+            <span class="campaign-card-status ${c.status}">${c.currentStage}</span>
+          </div>
+          <div class="campaign-progress">
+            <div class="progress-label">
+              <span>Progress</span>
+              <strong>${c.progress}%</strong>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${c.progress}%"></div>
+            </div>
+          </div>
+          <div class="campaign-info">
+            <div class="info-item">
+              <span class="info-label">Contact</span>
+              <span class="info-value">${c.contact}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Created</span>
+              <span class="info-value">${new Date(c.created).toLocaleDateString()}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleFilters() {
+      const container = document.getElementById('filters-container');
+      container.classList.toggle('hidden');
+    }
+
+    function applyFilter(e) {
+      selectedFilter = e.target.dataset.filter;
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.remove('active');
+      });
+      e.target.classList.add('active');
+      renderCampaigns();
+    }
+
+    // ============================================
+    // CAMPAIGN DETAIL VIEW
+    // ============================================
 
     async function viewCampaign(id) {
       try {
         const response = await fetch(`/api/campaigns/${id}`);
         currentCampaign = await response.json();
         renderCampaignDetail();
-        document.getElementById('campaigns-view').style.display = 'none';
-        document.getElementById('detail-view').classList.add('active');
+        showDetailView();
       } catch (error) {
         console.error('Error loading campaign:', error);
-        alert('Failed to load campaign details');
+        showError('Failed to load campaign details.');
       }
     }
 
     function renderCampaignDetail() {
       const c = currentCampaign;
-      
-      document.getElementById('detail-title').textContent = `${c.product} — ${c.company}`;
+
+      // Update header
+      document.getElementById('detail-title').textContent = `${c.product}`;
+      document.getElementById('detail-subtitle').textContent = `${c.company} • ${c.country}`;
+      document.getElementById('detail-progress').textContent = `${Math.round((c.stages.filter(s => s.status === 'completed').length / c.stages.length) * 100)}% Complete`;
       document.getElementById('detail-company').textContent = c.company;
       document.getElementById('detail-product').textContent = c.product;
       document.getElementById('detail-country').textContent = c.country;
       document.getElementById('detail-contact').textContent = c.contact;
-      document.getElementById('detail-timeline').textContent = c.timeline;
+      document.getElementById('detail-email').textContent = c.email || '—';
       document.getElementById('detail-created').textContent = new Date(c.created).toLocaleDateString();
 
-      // Load revision history
-      loadRevisionHistory();
+      // Render workflow
+      renderWorkflow();
 
-      // Render workflow stages
-      const stagesContainer = document.getElementById('workflow-stages');
-      stagesContainer.innerHTML = c.stages.map((s, idx) => {
-        const dateStatus = getDateStatus(s.dueDate);
-        const dateVal = s.dueDate ? new Date(s.dueDate).toISOString().split('T')[0] : '';
-        return `
-          <div class="stage-item">
-            <div class="stage-number">${s.id}</div>
-            <div class="stage-details">
-              <div class="stage-name">${s.name}</div>
-              <div class="stage-meta">Owner: ${s.owner} • Started: ${s.started || 'Not started'}</div>
-              <div class="stage-item-date">
-                <div class="date-status-dot ${dateStatus.status}"></div>
-                <input type="date" 
-                       class="stage-date-input"
-                       value="${dateVal}"
-                       onchange="saveStageDueDate(${s.id}, this.value)">
-                <span>${dateStatus.text}</span>
-              </div>
-            </div>
-            <span class="stage-status-badge status-${s.status}">${s.status}</span>
-          </div>
-        `;
-      }).join('');
+      // Render content
+      renderFlashBrief();
+      renderStoryboard();
+      renderMagicPatterns();
+      renderAuditLog();
+      renderRevisionHistory();
+    }
 
-      // Render flash brief
-      if (c.flashBrief) {
-        document.getElementById('flash-brief').innerHTML = `<pre>${escapeHtml(c.flashBrief)}</pre>`;
-      }
+    function renderWorkflow() {
+      const timeline = document.getElementById('workflow-timeline');
+      timeline.innerHTML = currentCampaign.stages.map(stage => `
+        <div class="workflow-stage ${stage.status}" role="listitem">
+          <div class="stage-indicator">${stage.id}</div>
+          <div class="stage-label">${stage.name}</div>
+          <div class="stage-dates">
+            ${stage.started ? `Started: ${new Date(stage.started).toLocaleDateString()}` : 'Not started'}
+            ${stage.completed ? `<br>Completed: ${new Date(stage.completed).toLocaleDateString()}` : ''}
+          </div>
+          <div class="stage-owner">${stage.owner}</div>
+        </div>
+      `).join('');
+    }
 
-      // Render storyboard
-      if (c.storyboard) {
-        document.getElementById('storyboard').innerHTML = `<pre>${escapeHtml(c.storyboard)}</pre>`;
-      }
-
-      // Render Magic Patterns links
-      const mpContainer = document.getElementById('magic-patterns-links');
-      if (c.magicPatterns) {
-        mpContainer.innerHTML = `
-          <div style="background: #f5f5f7; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px; text-align: center;">
-            <div style="font-weight: 600; color: #1a1a1a; margin-bottom: 8px; font-size: 13px;">Option 1</div>
-            <div style="display: flex; gap: 6px; justify-content: center;">
-              <a href="${c.magicPatterns.editorUrl || '#'}" target="_blank" style="background: #7c3aed; color: white; padding: 6px 10px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: 600;">🔗 Edit</a>
-              <a href="${c.magicPatterns.previewUrl || '#'}" target="_blank" style="background: #7c3aed; color: white; padding: 6px 10px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: 600;">👁️ Preview</a>
-            </div>
-          </div>
-          <div style="background: #f5f5f7; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px; text-align: center;">
-            <div style="font-weight: 600; color: #1a1a1a; margin-bottom: 8px; font-size: 13px;">Option 2</div>
-            <div style="display: flex; gap: 6px; justify-content: center;">
-              <a href="${(c.magicPatterns.editorUrl || '').replace('-001', '-002')}" target="_blank" style="background: #7c3aed; color: white; padding: 6px 10px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: 600;">🔗 Edit</a>
-              <a href="${(c.magicPatterns.previewUrl || '').replace('-001', '-002')}" target="_blank" style="background: #7c3aed; color: white; padding: 6px 10px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: 600;">👁️ Preview</a>
-            </div>
-          </div>
-          <div style="background: #f5f5f7; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px; text-align: center;">
-            <div style="font-weight: 600; color: #1a1a1a; margin-bottom: 8px; font-size: 13px;">Option 3</div>
-            <div style="display: flex; gap: 6px; justify-content: center;">
-              <a href="${(c.magicPatterns.editorUrl || '').replace('-001', '-003')}" target="_blank" style="background: #7c3aed; color: white; padding: 6px 10px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: 600;">🔗 Edit</a>
-              <a href="${(c.magicPatterns.previewUrl || '').replace('-001', '-003')}" target="_blank" style="background: #7c3aed; color: white; padding: 6px 10px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: 600;">👁️ Preview</a>
-            </div>
-          </div>
-        `;
+    function renderFlashBrief() {
+      const brief = document.getElementById('flash-brief');
+      if (currentCampaign.flashBrief) {
+        brief.innerHTML = `<pre>${escapeHtml(currentCampaign.flashBrief)}</pre>`;
       } else {
-        mpContainer.innerHTML = '<p style="grid-column: 1/-1; color: #4b5563;">No Magic Patterns designs yet. Click "Regenerate" to create them.</p>';
-      }
-
-      // Render audit log
-      const auditContainer = document.getElementById('audit-log');
-      if (c.auditLog && c.auditLog.length > 0) {
-        auditContainer.innerHTML = c.auditLog.map(entry => `
-          <div class="audit-entry">
-            <div class="audit-timestamp">${new Date(entry.timestamp).toLocaleString()}</div>
-            <div class="audit-action">${entry.action}</div>
-            <div class="audit-actor">By: ${entry.actor}</div>
-            ${entry.details ? `<div style="color: #4b5563; font-size: 0.8rem; margin-top: 5px;">${entry.details}</div>` : ''}
-          </div>
-        `).join('');
-      } else {
-        auditContainer.innerHTML = '<p style="color: #4b5563;">No audit entries yet.</p>';
+        brief.innerHTML = '<span class="content-placeholder">No flash brief available yet.</span>';
       }
     }
 
-    function goBack() {
-      currentCampaign = null;
-      document.getElementById('detail-view').classList.remove('active');
-      document.getElementById('campaigns-view').style.display = 'block';
+    function renderStoryboard() {
+      const storyboard = document.getElementById('storyboard');
+      if (currentCampaign.storyboard) {
+        storyboard.innerHTML = `<pre>${escapeHtml(currentCampaign.storyboard)}</pre>`;
+      } else {
+        storyboard.innerHTML = '<span class="content-placeholder">No storyboard available yet.</span>';
+      }
+    }
+
+    function renderMagicPatterns() {
+      const container = document.getElementById('magic-patterns-links');
+      if (currentCampaign.magicPatterns?.editorUrl) {
+        const opts = [1, 2, 3];
+        container.innerHTML = opts.map(opt => {
+          const baseUrl = currentCampaign.magicPatterns.editorUrl.replace(/-001/, `-00${opt}`);
+          const previewUrl = currentCampaign.magicPatterns.previewUrl?.replace(/-001/, `-00${opt}`) || '#';
+          return `
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center;">
+              <div style="font-weight: 600; margin-bottom: 8px;">Option ${opt}</div>
+              <div style="display: flex; gap: 6px; justify-content: center;">
+                <a href="${baseUrl}" target="_blank" class="btn btn-secondary btn-small">🔗 Edit</a>
+                <a href="${previewUrl}" target="_blank" class="btn btn-secondary btn-small">👁️ Preview</a>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        container.innerHTML = '<span class="content-placeholder" style="grid-column: 1/-1;">No Magic Patterns designs yet. Click "Regenerate" to create them.</span>';
+      }
+    }
+
+    function renderAuditLog() {
+      const auditLog = document.getElementById('audit-log');
+      if (currentCampaign.auditLog?.length > 0) {
+        auditLog.innerHTML = currentCampaign.auditLog.map(entry => `
+          <div class="audit-entry">
+            <div class="audit-timestamp">${new Date(entry.timestamp).toLocaleString()}</div>
+            <div class="audit-action">${entry.action}</div>
+            <div class="audit-details">By: ${entry.actor}</div>
+            ${entry.details ? `<div class="audit-details">${entry.details}</div>` : ''}
+          </div>
+        `).join('');
+      } else {
+        auditLog.innerHTML = '<div class="content-placeholder">No activity yet.</div>';
+      }
+    }
+
+    function renderRevisionHistory() {
+      // Placeholder for revision history (loaded from /api/campaigns/:id/revisions)
+      // Could be expanded to show revision requests
+    }
+
+    // ============================================
+    // EDITING & MODALS
+    // ============================================
+
+    function editFlashBrief() {
+      editingField = 'flashBrief';
+      document.getElementById('edit-modal-title').textContent = '✏️ Edit Flash Brief';
+      document.getElementById('edit-modal-textarea').value = currentCampaign.flashBrief || '';
+      openModal('edit-modal');
     }
 
     function editStoryboard() {
       editingField = 'storyboard';
       document.getElementById('edit-modal-title').textContent = '✏️ Edit Storyboard';
       document.getElementById('edit-modal-textarea').value = currentCampaign.storyboard || '';
-      document.getElementById('edit-modal').classList.add('active');
-    }
-
-    function editFlashBrief() {
-      editingField = 'flashBrief';
-      document.getElementById('edit-modal-title').textContent = '⚡ Edit Flash Brief';
-      document.getElementById('edit-modal-textarea').value = currentCampaign.flashBrief || '';
-      document.getElementById('edit-modal').classList.add('active');
-    }
-
-    function closeModal() {
-      document.getElementById('edit-modal').classList.remove('active');
-      editingField = null;
+      openModal('edit-modal');
     }
 
     async function saveEdit() {
-      if (!editingField) return;
-
-      const newContent = document.getElementById('edit-modal-textarea').value;
-      
-      try {
-        const response = await fetch(`/api/campaigns/${currentCampaign.id}/storyboard`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ storyboardText: newContent })
-        });
-
-        if (response.ok) {
-          currentCampaign[editingField] = newContent;
-          renderCampaignDetail();
-          closeModal();
-          alert('Changes saved successfully!');
-        }
-      } catch (error) {
-        console.error('Error saving changes:', error);
-        alert('Failed to save changes');
-      }
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    function addChatMessage(role, text) {
-      const messagesDiv = document.getElementById('chat-messages-container');
-      if (!messagesDiv) return;
-      const msg = document.createElement('div');
-      msg.style.cssText = `padding: 8px 12px; border-radius: 6px; font-size: 12px; max-width: 80%; word-wrap: break-word; ${
-        role === 'user' 
-          ? 'background: #7c3aed; color: white; align-self: flex-end; margin-left: auto;'
-          : 'background: #e5e5e5; color: #1a1a1a;'
-      }`;
-      msg.textContent = text;
-      messagesDiv.appendChild(msg);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
-
-    function focusChatForUpdate(field) {
-      const input = document.getElementById('chat-input');
-      const section = document.getElementById('chat-section');
-      
-      // SHOW chat section
-      section.style.display = 'block';
-      
-      // Scroll to chat section
-      section.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      
-      // Set placeholder based on field
-      const placeholders = {
-        'flash-brief': 'E.g., "Update the flash brief to focus on nurses"',
-        'storyboard': 'E.g., "Make the storyboard more mobile-focused"'
-      };
-      
-      input.placeholder = placeholders[field] || 'Chat with Snakker Cortex...';
-      input.focus();
-      input.setAttribute('data-update-field', field);
-      
-      // Add visual indicator
-      section.style.border = '2px solid var(--purple-600)';
-      setTimeout(() => {
-        section.style.border = '';
-      }, 2000);
-    }
-
-    function requestFlashBriefRevision() {
-      revisionField = 'flashBrief';
-      document.getElementById('revision-modal').classList.add('active');
-      document.getElementById('revision-prompt').focus();
-    }
-
-    function requestStoryboardRevision() {
-      revisionField = 'storyboard';
-      document.getElementById('revision-modal').classList.add('active');
-      document.getElementById('revision-prompt').focus();
-    }
-
-    function closeRevisionModal() {
-      document.getElementById('revision-modal').classList.remove('active');
-      document.getElementById('revision-prompt').value = '';
-      revisionField = null;
-    }
-
-    async function submitRevisionRequest() {
-      if (!revisionField || !currentCampaign) return;
-
-      const prompt = document.getElementById('revision-prompt').value.trim();
-      if (!prompt) {
-        alert('Please enter a revision prompt');
+      const content = document.getElementById('edit-modal-textarea').value;
+      if (!content.trim()) {
+        showError('Content cannot be empty.');
         return;
       }
 
-      const endpoint = revisionField === 'flashBrief' 
-        ? `/api/campaigns/${currentCampaign.id}/flash-brief-revision`
-        : `/api/campaigns/${currentCampaign.id}/storyboard-revision`;
+      try {
+        const endpoint = editingField === 'flashBrief'
+          ? `/api/campaigns/${currentCampaign.id}/flash-brief`
+          : `/api/campaigns/${currentCampaign.id}/storyboard`;
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            [`${editingField}Text`]: content
+          })
+        });
+
+        if (!response.ok) throw new Error('Save failed');
+
+        currentCampaign[editingField] = content;
+        if (editingField === 'flashBrief') {
+          renderFlashBrief();
+        } else {
+          renderStoryboard();
+        }
+        closeModal();
+        showSuccess('Changes saved successfully.');
+      } catch (error) {
+        console.error('Error saving changes:', error);
+        showError('Failed to save changes.');
+      }
+    }
+
+    function openRevisionModal(field) {
+      revisionField = field;
+      openModal('revision-modal');
+    }
+
+    async function submitRevisionRequest() {
+      const prompt = document.getElementById('revision-prompt').value;
+      if (!prompt.trim()) {
+        showError('Please describe what you\'d like to change.');
+        return;
+      }
 
       try {
+        const endpoint = revisionField === 'flash-brief'
+          ? `/api/campaigns/${currentCampaign.id}/flash-brief-revision`
+          : `/api/campaigns/${currentCampaign.id}/storyboard-revision`;
+
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt })
         });
 
-        if (response.ok) {
-          const result = await response.json();
-          alert(`Revision ${result.version} requested!\n\nPrompt: "${prompt}"\n\nStatus: Pending Klaus Agent processing`);
-          closeRevisionModal();
-          
-          // Reload campaign to show new revision in history
-          await viewCampaign(currentCampaign.id);
-        }
+        if (!response.ok) throw new Error('Request failed');
+
+        closeRevisionModal();
+        showSuccess('Revision request submitted.');
+        renderRevisionHistory();
       } catch (error) {
         console.error('Error submitting revision:', error);
-        alert('Failed to request revision');
+        showError('Failed to submit revision request.');
       }
     }
 
-    async function loadRevisionHistory() {
-      if (!currentCampaign) return;
-
-      try {
-        const response = await fetch(`/api/campaigns/${currentCampaign.id}/revisions`);
-        const revisions = await response.json();
-
-        // Display Flash Brief revisions
-        const fbRevDiv = document.getElementById('flash-brief-revisions');
-        if (revisions.flashBrief && revisions.flashBrief.length > 0) {
-          fbRevDiv.innerHTML = `
-            <strong>Revision History:</strong>
-            ${revisions.flashBrief.map(r => `
-              <div style="margin: 8px 0; padding: 8px; background: #f5f5f7; border-left: 3px solid #1da1f2;">
-                <div style="font-weight: 600;">v${r.version} - ${r.status.toUpperCase()}</div>
-                <div style="margin: 5px 0;">Prompt: "${r.prompt}"</div>
-                <div style="font-size: 0.75rem; color: #4b5563;">${new Date(r.requestedAt).toLocaleString()}</div>
-              </div>
-            `).join('')}
-          `;
-        }
-
-        // Display Storyboard revisions
-        const sbRevDiv = document.getElementById('storyboard-revisions');
-        if (revisions.storyboard && revisions.storyboard.length > 0) {
-          sbRevDiv.innerHTML = `
-            <strong>Revision History:</strong>
-            ${revisions.storyboard.map(r => `
-              <div style="margin: 8px 0; padding: 8px; background: #f5f5f7; border-left: 3px solid #1da1f2;">
-                <div style="font-weight: 600;">v${r.version} - ${r.status.toUpperCase()}</div>
-                <div style="margin: 5px 0;">Prompt: "${r.prompt}"</div>
-                <div style="font-size: 0.75rem; color: #4b5563;">${new Date(r.requestedAt).toLocaleString()}</div>
-              </div>
-            `).join('')}
-          `;
-        }
-      } catch (error) {
-        console.error('Error loading revisions:', error);
-      }
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.add('active');
+      document.body.style.overflow = 'hidden';
     }
 
-    // Chat Interface Functions
-    function addChatMessage(role, message) {
-      const messagesDiv = document.getElementById('chat-messages');
-      const messageEl = document.createElement('div');
-      messageEl.style.cssText = role === 'user' 
-        ? 'background: #7c3aed; color: white; padding: 10px 12px; border-radius: 6px; align-self: flex-end; max-width: 80%;'
-        : 'background: #ffffff; border: 1px solid #e5e5e5; color: #333; padding: 10px 12px; border-radius: 6px; align-self: flex-start; max-width: 80%;';
-      messageEl.textContent = message;
-      messagesDiv.appendChild(messageEl);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    function closeModal() {
+      document.getElementById('edit-modal').classList.remove('active');
+      document.body.style.overflow = '';
+      editingField = null;
     }
+
+    function closeRevisionModal() {
+      document.getElementById('revision-modal').classList.remove('active');
+      document.body.style.overflow = '';
+      revisionField = null;
+      document.getElementById('revision-prompt').value = '';
+    }
+
+    // Close modals on background click
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          e.target.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
+    });
+
+    // ============================================
+    // CHAT INTERFACE
+    // ============================================
 
     async function sendChatMessage() {
       const input = document.getElementById('chat-input');
       const message = input.value.trim();
-      
-      if (!message || !currentCampaign) return;
+      if (!message) return;
 
-      // Add user message to chat
-      addChatMessage('user', message);
+      const messagesContainer = document.getElementById('chat-messages');
+
+      // Add user message
+      const userMsg = document.createElement('div');
+      userMsg.className = 'chat-message user';
+      userMsg.textContent = message;
+      messagesContainer.appendChild(userMsg);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
       input.value = '';
 
       try {
-        // Parse campaign ID to get company/country/product/number
-        const parts = currentCampaign.id.split('-');
-        if (parts.length < 4) {
-          addChatMessage('ai', '❌ Could not parse campaign ID');
-          return;
-        }
-
-        const [company, country, product, number] = [parts[0], parts[1], parts[2], parts[3]];
-
-        // Send chat to server
-        const response = await fetch('/api/chat-message', {
+        const response = await fetch(`/api/campaigns/${currentCampaign.id}/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            company,
-            country,
-            product,
-            number,
-            message,
-            campaignData: currentCampaign
-          })
+          body: JSON.stringify({ message })
         });
 
-        const result = await response.json();
+        const data = await response.json();
 
-        if (result.success) {
-          // Update campaign data with changes
-          if (result.changes && result.changes.length > 0) {
-            const changeText = result.changes.map(c => `${c.field}: ${c.oldValue} → ${c.newValue}`).join(', ');
-            addChatMessage('ai', `✅ Updated: ${changeText}`);
-            
-            // Reload campaign to show updates
-            await viewCampaign(currentCampaign.id);
-          } else {
-            addChatMessage('ai', result.response || '✅ Understood!');
-          }
-        } else {
-          addChatMessage('ai', `❌ ${result.error || 'Error processing message'}`);
-        }
+        // Add AI response
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'chat-message ai';
+        aiMsg.textContent = data.response || '✅ Got it!';
+        messagesContainer.appendChild(aiMsg);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Refresh campaign data
+        const campaignResponse = await fetch(`/api/campaigns/${currentCampaign.id}`);
+        currentCampaign = await campaignResponse.json();
+        renderCampaignDetail();
       } catch (error) {
-        console.error('Chat error:', error);
-        addChatMessage('ai', `❌ Error: ${error.message}`);
+        console.error('Error sending chat message:', error);
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'chat-message ai';
+        errorMsg.textContent = '❌ Something went wrong. Please try again.';
+        messagesContainer.appendChild(errorMsg);
       }
     }
+
+    // ============================================
+    // ACTIONS
+    // ============================================
 
     async function regenerateMagicPatterns() {
-      if (!currentCampaign) {
-        alert('No campaign selected');
-        return;
-      }
-
-      const button = event.target;
-      button.disabled = true;
-      button.textContent = '⏳ Regenerating...';
+      if (!confirm('Regenerate Magic Patterns designs? This will create 3 new FABP options.')) return;
 
       try {
-        const parts = currentCampaign.id.split('-');
-        if (parts.length < 4) {
-          throw new Error('Could not parse campaign ID');
-        }
-
-        const [company, country, product, number] = [parts[0], parts[1], parts[2], parts[3]];
-
-        addChatMessage('ai', '✨ Regenerating Magic Patterns designs...');
-
-        const response = await fetch('/api/regenerate-designs', {
+        const response = await fetch(`/api/campaigns/${currentCampaign.id}/regenerate`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            company,
-            country,
-            product,
-            number,
-            campaignData: currentCampaign
-          })
+          headers: { 'Content-Type': 'application/json' }
         });
 
-        const result = await response.json();
+        if (!response.ok) throw new Error('Regeneration failed');
 
-        if (result.success) {
-          addChatMessage('ai', `✅ ${result.message}\n\nNew mockups are ready! Check the storyboard for updated Magic Patterns links.`);
-          
-          // Reload storyboard to show new designs
-          await viewCampaign(currentCampaign.id);
-        } else {
-          addChatMessage('ai', `❌ Error: ${result.error || 'Failed to regenerate'}`);
-        }
+        const campaignResponse = await fetch(`/api/campaigns/${currentCampaign.id}`);
+        currentCampaign = await campaignResponse.json();
+        renderMagicPatterns();
+        showSuccess('✨ Magic Patterns regenerated successfully.');
       } catch (error) {
-        console.error('Regeneration error:', error);
-        addChatMessage('ai', `❌ Error: ${error.message}`);
-      } finally {
-        button.disabled = false;
-        button.textContent = '✨ Regenerate Magic Patterns';
+        console.error('Error regenerating designs:', error);
+        showError('Failed to regenerate Magic Patterns.');
       }
     }
 
-    // Allow Enter key in chat input
-    document.addEventListener('DOMContentLoaded', () => {
-      const chatInput = document.getElementById('chat-input');
-      if (chatInput) {
-        chatInput.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendChatMessage();
-          }
-        });
-      }
-    });
+    // ============================================
+    // TAB SWITCHING
+    // ============================================
 
-    // Load campaigns on page load
-    loadCampaigns();
-  
-    // Make campaign cards keyboard accessible
-    document.addEventListener('DOMContentLoaded', function() {
-      const cards = document.querySelectorAll('.campaign-card');
-      cards.forEach(card => {
-        card.setAttribute('role', 'button');
-        card.setAttribute('tabindex', '0');
-        card.setAttribute('aria-label', 'View ' + (card.querySelector('.campaign-title')?.textContent || 'campaign'));
-        
-        card.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            this.click();
-          }
-        });
+    function switchTab(e) {
+      const tabName = e.target.dataset.tab;
+
+      // Update tab buttons
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+        tab.setAttribute('aria-selected', 'false');
       });
-    });
+      e.target.classList.add('active');
+      e.target.setAttribute('aria-selected', 'true');
 
-  
-    function hideChatInterface() {
-      const section = document.getElementById('chat-section');
-      section.style.display = 'none';
-      document.getElementById('chat-input').value = '';
-      document.getElementById('chat-messages').innerHTML = '<div style="padding: 12px; background: var(--bg-secondary); border-radius: 6px; font-size: 0.9375rem; color: var(--text-secondary); border-left: 3px solid var(--purple-600);"><strong>👋 Hi! I\'m Snakker Cortex.</strong><br>I can help you update this campaign. Chat naturally about changes you\'d like to make.</div>';
+      // Update tab content
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.getElementById(`${tabName}-tab`).classList.add('active');
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // ============================================
+    // NAVIGATION
+    // ============================================
 
-    // DATE MANAGEMENT FUNCTIONS
-    function getDateStatus(dueDate) {
-      if (!dueDate) return { status: 'not-set', text: 'No due date', days: null };
-      
-      const due = new Date(dueDate);
-      due.setHours(0, 0, 0, 0);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const days = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
-      
-      if (days < 0) {
-        return { status: 'overdue', text: `Overdue by ${Math.abs(days)} days`, days };
-      } else if (days <= 3) {
-        return { status: 'at-risk', text: `Due in ${days} days`, days };
-      } else {
-        return { status: 'on-track', text: `Due in ${days} days`, days };
-      }
+    function showDetailView() {
+      document.getElementById('campaigns-view').classList.remove('active');
+      document.getElementById('detail-view').classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function saveStageDueDate(stageId, dateStr) {
-      if (!currentCampaign) return;
-      
-      const stage = currentCampaign.stages.find(s => s.id === stageId);
-      if (!stage) return;
-      
-      stage.dueDate = dateStr || null;
-      
-      // Save to server
-      fetch(`/api/campaigns/${currentCampaign.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stages: currentCampaign.stages })
-      })
-        .then(() => {
-          console.log('Date saved');
-          renderCampaignDetail();
-        })
-        .catch(err => console.error('Error saving date:', err));
+    function goBackToCampaigns() {
+      document.getElementById('detail-view').classList.remove('active');
+      document.getElementById('campaigns-view').classList.add('active');
+      currentCampaign = null;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // ============================================
+    // UTILITIES
+    // ============================================
+
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    // ============================================
+    // NOTIFICATIONS
+    // ============================================
+
+    function showError(message) {
+      const container = document.querySelector('.container');
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message';
+      errorDiv.textContent = '❌ ' + message;
+      container.insertBefore(errorDiv, container.firstChild);
+      setTimeout(() => errorDiv.remove(), 5000);
+    }
+
+    function showSuccess(message) {
+      const container = document.querySelector('.container');
+      const successDiv = document.createElement('div');
+      successDiv.className = 'success-message';
+      successDiv.textContent = message;
+      container.insertBefore(successDiv, container.firstChild);
+      setTimeout(() => successDiv.remove(), 4000);
+    }
   </script>
 </body>
 </html>
