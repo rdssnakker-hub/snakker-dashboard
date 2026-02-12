@@ -75,6 +75,15 @@ function getStoryboard(campaignPath) {
   return null;
 }
 
+// Helper: Get design links
+function getDesignLinks(campaignPath) {
+  const designPath = path.join(campaignPath, 'design-links.json');
+  if (fs.existsSync(designPath)) {
+    return JSON.parse(fs.readFileSync(designPath, 'utf8'));
+  }
+  return null;
+}
+
 // Helper: Get workflow stages
 function getWorkflowStages(campaignPath, campaignData) {
   const stagesPath = path.join(campaignPath, 'workflow.json');
